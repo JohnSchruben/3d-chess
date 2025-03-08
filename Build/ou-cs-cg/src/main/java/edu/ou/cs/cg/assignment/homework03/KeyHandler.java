@@ -60,44 +60,30 @@ public final class KeyHandler extends KeyAdapter
 
 	public void		keyPressed(KeyEvent e)
 	{
-		int				starSides = model.getStarSides();
-		Point2D.Double	starLocation = model.getStarLocation();
-
 		// The shift key determines whether star moving is fine or coarse
 		int				amount = (Utilities.isShiftDown(e) ? 50 : 10);
 
 		switch (e.getKeyCode())
 		{
 			case KeyEvent.VK_F:							// The 'f' key
-				model.toggleStarFill();					// toggles star filling
 				return;
 
 			case KeyEvent.VK_Q:							// The 'q' key
-				model.setStarSides(starSides - 1);		// decrements star sides
 				return;
 
 			case KeyEvent.VK_W:							// The 'w' key
-				model.setStarSides(starSides + 1);		// increments star sides
 				return;
 
 			case KeyEvent.VK_LEFT:						// The left arrow key
-				starLocation.x -= amount;				// moves star left
-				model.setStarLocationInSceneCoordinates(starLocation);
 				break;
 
 			case KeyEvent.VK_RIGHT:						// The right arrow key
-				starLocation.x += amount;				// moves star right
-				model.setStarLocationInSceneCoordinates(starLocation);
 				break;
 
 			case KeyEvent.VK_DOWN:						// The down arrow key
-				starLocation.y -= amount;				// moves star down
-				model.setStarLocationInSceneCoordinates(starLocation);
 				break;
 
 			case KeyEvent.VK_UP:						// The up arrow key
-				starLocation.y += amount;				// moves star up
-				model.setStarLocationInSceneCoordinates(starLocation);
 				break;
 		}
 	}

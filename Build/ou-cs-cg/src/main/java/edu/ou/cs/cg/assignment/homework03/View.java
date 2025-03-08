@@ -220,47 +220,11 @@ public final class View
 		// Vertical position of text labels
 		int 	voff = Utilities.TEXT_SPACING;
 
-		// Draw help+state text for parameter: star fill
+		// Draw text
 		boolean		starFill = model.getStarFill();
-		String		sf = ("[f]   Star Fill         = " + starFill);
+		String		sf = ("");
 
 		renderer.draw(sf, 2, h - voff);		// Draw text on the current line
-		voff += Utilities.TEXT_SPACING;		// Move down one line
-
-		// Draw help+state text for parameter: star sides
-		int			starSides = model.getStarSides();
-		String		sn = ("[q|w] Star Sides [3-32] = " + starSides);
-
-		renderer.draw(sn, 2, h - voff);		// Draw text on the current line
-		voff += Utilities.TEXT_SPACING;		// Move down one line
-
-		// Draw help+state text for parameter: star location
-		Point2D.Double	starLocation = model.getStarLocation();
-		String		sp = ("[←|→|↓|↑] Star Location = " + "[" +
-							FORMAT.format(starLocation.x) + "," +
-							FORMAT.format(starLocation.y) + "]");
-
-		renderer.draw(sp, 2, h - voff);		// Draw text on the current line
-		voff += Utilities.TEXT_SPACING;		// Move down one line
-
-		String		ks = "  (<shift> for coarse-grained movement)";
-		
-		renderer.draw(ks, 2, h - voff);		// Draw text on the current line
-		voff += Utilities.TEXT_SPACING;		// Move down one line
-
-		// Insert empty line
-		voff += Utilities.TEXT_SPACING;		// Move down one line
-
-		// Draw help text for mouse click interactions
-		String	mc = "mouse click sets star location";
-
-		renderer.draw(mc, 2, h - voff);		// Draw text on the current line
-		voff += Utilities.TEXT_SPACING;		// Move down one line
-
-		// Draw help text for mouse wheel interactions
-		String	mw = "mouse wheel increases/decreases star sides";
-
-		renderer.draw(mw, 2, h - voff);		// Draw text on the current line
 		voff += Utilities.TEXT_SPACING;		// Move down one line
 
 		renderer.endRendering();
@@ -273,56 +237,7 @@ public final class View
 	private void	drawMain(GL2 gl)
 	{
 		setScreenProjection(gl);
-		drawStar(gl);
-	}
-
-	private void	drawStar(GL2 gl)
-	{
-		boolean			f = model.getStarFill();
-		int				s = model.getStarSides();
-		Point2D.Double	p = model.getStarLocation();
-
-		double			theta = 0.5 * Math.PI;		// Start at 12 o'clock
-		double			or = 100.0;					// Outer radius
-		double			ir = 40.0;					// Inner radius
-
-		// Animate rotation of the star clockwise at 0.25 cycles per second
-		theta -= 2.0 * Math.PI * (k / 240.0);		
-
-		if (f)
-		{
-			// Fill the star using a TRIANGLE_FAN
-			setColor(gl, 255, 255, 0);				// Yellow
-			gl.glBegin(GL.GL_TRIANGLE_FAN);
-			gl.glVertex2d(p.x, p.y);
-			doStarVertices(gl, p.x, p.y, s, or, ir, theta);
-			gl.glVertex2d(p.x + or * Math.cos(theta),
-						  p.y + or * Math.sin(theta));
-			gl.glEnd();
-		}
-
-		// Edge the star using a LINE_STRIP
-		setColor(gl, 255, 0, 0);						// Red
-		gl.glBegin(GL.GL_LINE_STRIP);
-		doStarVertices(gl, p.x, p.y, s, or, ir, theta);
-		gl.glVertex2d(p.x + or * Math.cos(theta),
-					  p.y + or * Math.sin(theta));
-		gl.glEnd();
-	}
-
-	private void	doStarVertices(GL2 gl, double cx, double cy, int sides,
-								   double r1, double r2, double theta)
-	{
-		double	delta = Math.PI / sides;
-
-		for (int i=0; i<sides; i++)
-		{
-			gl.glVertex2d(cx + r1 * Math.cos(theta), cy + r1 * Math.sin(theta));
-			theta += delta;
-
-			gl.glVertex2d(cx + r2 * Math.cos(theta), cy + r2 * Math.sin(theta));
-			theta += delta;
-		}
+		
 	}
 
 	//**********************************************************************

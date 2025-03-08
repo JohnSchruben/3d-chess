@@ -56,9 +56,7 @@ public final class Model
 	private final View			view;
 
 	// Model variables
-	private boolean				starFill;		// Whether to fill it or not
-	private int					starSides;		// Number of sides
-	private Point2D.Double		starLocation;	// Location in scene coords
+	
 
 	//**********************************************************************
 	// Constructors and Finalizer
@@ -69,66 +67,36 @@ public final class Model
 		this.view = view;
 
 		// Initialize user-adjustable variables (with reasonable default values)
-		starFill = false;
-		starSides = 3;
-		starLocation = new Point2D.Double(640.0, 360.0);	// Center of scene
+		
 	}
 
 	//**********************************************************************
 	// Public Methods (Access Variables)
 	//**********************************************************************
 
-	public boolean	getStarFill()
+	public boolean	getWhatever()
 	{
-		return starFill;
-	}
-
-	public int	getStarSides()
-	{
-		return starSides;
-	}
-
-	public Point2D.Double	getStarLocation()
-	{
-		return new Point2D.Double(starLocation.x, starLocation.y);
+		return true;
 	}
 
 	//**********************************************************************
 	// Public Methods (Modify Variables)
 	//**********************************************************************
 
-	public void		toggleStarFill()
+	public void	BasicSet()
 	{
 		view.getCanvas().invoke(false, new BasicUpdater() {
 			public void	update(GL2 gl) {
-				starFill = !starFill;
+				
 			}
 		});;
 	}
 
-	public void		setStarSides(int n)
-	{
-		view.getCanvas().invoke(false, new BasicUpdater() {
-			public void	update(GL2 gl) {
-				starSides = Math.max(3, Math.min(32, n));	// Limit to [3, 32]
-			}
-		});;
-	}
-
-	public void		setStarLocationInViewCoordinates(Point q)
+	public void	PointSet(Point q)
 	{
 		view.getCanvas().invoke(false, new ViewPointUpdater(q) {
 			public void	update(double[] p) {
-				starLocation = new Point2D.Double(p[0], p[1]);
-			}
-		});;
-	}
-
-	public void		setStarLocationInSceneCoordinates(Point2D.Double q)
-	{
-		view.getCanvas().invoke(false, new BasicUpdater() {
-			public void	update(GL2 gl) {
-				starLocation = new Point2D.Double(q.x, q.y);
+				
 			}
 		});;
 	}

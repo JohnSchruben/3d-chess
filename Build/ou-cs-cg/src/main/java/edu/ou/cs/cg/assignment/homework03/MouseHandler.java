@@ -61,7 +61,6 @@ public final class MouseHandler extends MouseAdapter
 
 	public void		mouseClicked(MouseEvent e)
 	{
-		model.setStarLocationInViewCoordinates(e.getPoint());
 	}
 
 	public void		mouseEntered(MouseEvent e)
@@ -98,7 +97,6 @@ public final class MouseHandler extends MouseAdapter
 
 	public void		mouseWheelMoved(MouseWheelEvent e)
 	{
-		model.setStarSides(model.getStarSides() - e.getWheelRotation());
 	}
 }
 

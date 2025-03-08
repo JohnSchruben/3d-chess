@@ -45,7 +45,7 @@ public final class Application
 	// Public Class Members
 	//**********************************************************************
 
-	public static final String		DEFAULT_NAME = "Homework03";
+	public static final String		DEFAULT_NAME = "3D-Chess";
 	public static final Dimension	DEFAULT_SIZE = new Dimension(1280, 720);
 
 	//**********************************************************************
