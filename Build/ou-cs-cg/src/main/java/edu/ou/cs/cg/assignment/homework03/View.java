@@ -249,25 +249,29 @@ public final class View
 	private void	drawMain(GL2 gl)
 	{
 		set3dSpace(gl);
-		
+		drawCube(gl);
 
 		drawBoard(gl);
 		
 	}
 
+	private void drawCube(GL2 gl) {
+		// Render a simple cube for testing
+		gl.glBegin(GL2.GL_QUADS);
+		gl.glColor3f(1, 0, 0); gl.glVertex3f(-1, -1, -1);
+		gl.glColor3f(0, 1, 0); gl.glVertex3f(1, -1, -1);
+		gl.glColor3f(0, 0, 1); gl.glVertex3f(1, 1, -1);
+		gl.glColor3f(1, 1, 0); gl.glVertex3f(-1, 1, -1);
+		gl.glEnd();
+	}
+
 	private void drawBoard(GL2 gl) {
-		//draw in middle of space
+		//draw board in middle of space. Keep still.
+		//Move view around board by switching between different camera postitions and angles with the keyboard.
 
-
-		 // Render a simple cube for testing
-		 gl.glBegin(GL2.GL_QUADS);
-		 gl.glColor3f(1, 0, 0); gl.glVertex3f(-1, -1, -1);
-		 gl.glColor3f(0, 1, 0); gl.glVertex3f(1, -1, -1);
-		 gl.glColor3f(0, 0, 1); gl.glVertex3f(1, 1, -1);
-		 gl.glColor3f(1, 1, 0); gl.glVertex3f(-1, 1, -1);
-		 gl.glEnd();
 
 		//draw the pieces in their starting position
+		
 
 		return;
 	}
