@@ -237,7 +237,43 @@ public final class View
 	private void	drawMain(GL2 gl)
 	{
 		setScreenProjection(gl);
+		drawBoard();
 		
+	}
+
+	private void drawBoard(GL2 gl) {
+		//draw in middle of space
+
+
+		//draw the pieces in their starting position
+
+		return;
+	}
+
+	//color = 0 -> black
+	//color = 1 -> white
+	private void drawPawn(GL2 gl, int x, int y, int z, int color) {
+		return;
+	}
+
+	private void drawBishop(GL2 gl, int x, int y, int z, int color) {
+		return;
+	}
+
+	private void drawKnight(GL2 gl, int x, int y, int z, int color) {
+		return;
+	}
+
+	private void drawRook(GL2 gl, int x, int y, int z, int color) {
+		return;
+	}
+
+	private void drawQueen(GL2 gl, int x, int y, int z, int color) {
+		return;
+	}
+
+	private void drawKing(GL2 gl, int x, int y, int z, int color) {
+		return;
 	}
 
 	//**********************************************************************
