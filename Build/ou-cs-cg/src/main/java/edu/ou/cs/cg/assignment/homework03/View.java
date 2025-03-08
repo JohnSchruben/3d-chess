@@ -166,7 +166,7 @@ public final class View
 		gl.glClear(GL.GL_COLOR_BUFFER_BIT);		// Clear the buffer
 
 		drawMain(gl);							// Draw scene content
-		drawMode(drawable);						// Draw overlaid mode text
+		//drawMode(drawable);						// Draw overlaid mode text
 
 		gl.glFlush();							// Finish and display
 	}
@@ -193,15 +193,23 @@ public final class View
 		gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
 	}
 
-	// Position and orient the default camera to view rendered elements in 2-D.
 	// Translate and scale the projection for drawing the contents of the scene.
-	private void	setScreenProjection(GL2 gl)
+	private void	set3dSpace(GL2 gl)
 	{
 		GLU	glu = GLU.createGLU();
 
+		int width = 16;
+		int height = 9;
+		
+		float aspect = (float) width / height;
+
 		gl.glMatrixMode(GL2.GL_PROJECTION);			// Prepare for matrix xform
 		gl.glLoadIdentity();						// Set to identity matrix
-		glu.gluOrtho2D(0.0f, 1280.0f, 0.0f, 720.0f);// 2D translate and scale
+		glu.gluPerspective(45.0, aspect, 1.0, 100.0);
+        gl.glMatrixMode(GL2.GL_MODELVIEW);
+
+		// Set up the camera (eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ)
+		glu.gluLookAt(0, 0, 5, 0, 0, 0, 0, 1, 0);
 	}
 
 	//**********************************************************************
@@ -221,7 +229,6 @@ public final class View
 		int 	voff = Utilities.TEXT_SPACING;
 
 		// Draw text
-		boolean		starFill = model.getStarFill();
 		String		sf = ("");
 
 		renderer.draw(sf, 2, h - voff);		// Draw text on the current line
@@ -236,14 +243,24 @@ public final class View
 
 	private void	drawMain(GL2 gl)
 	{
-		setScreenProjection(gl);
-		drawBoard();
+		set3dSpace(gl);
+		
+
+		drawBoard(gl);
 		
 	}
 
 	private void drawBoard(GL2 gl) {
 		//draw in middle of space
 
+
+		 // Render a simple cube for testing
+		 gl.glBegin(GL2.GL_QUADS);
+		 gl.glColor3f(1, 0, 0); gl.glVertex3f(-1, -1, -1);
+		 gl.glColor3f(0, 1, 0); gl.glVertex3f(1, -1, -1);
+		 gl.glColor3f(0, 0, 1); gl.glVertex3f(1, 1, -1);
+		 gl.glColor3f(1, 1, 0); gl.glVertex3f(-1, 1, -1);
+		 gl.glEnd();
 
 		//draw the pieces in their starting position
 
