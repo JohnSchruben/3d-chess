@@ -1,13 +1,15 @@
 //******************************************************************************
-// Copyright (C) 2016-2020 University of Oklahoma Board of Trustees.
+// Copyright (C) 2016-2025 University of Oklahoma Board of Trustees.
 //******************************************************************************
-// Last modified: Tue Dec 15 12:37:20 2020 by Chris Weaver
+// Last modified: Thu Jan 16 14:53:07 2025 by Chris Weaver
 //******************************************************************************
 // Major Modification History:
 //
 // 20160225 [weaver]:	Original file.
 // 20190226 [weaver]:	Moved to utilities package, added coordinate mappings.
 // 20201215 [weaver]:	Added PIXEL_SCALE and setIdentifyPixelScale().
+// 20240224 [weaver]:	Added three methods to deal with surface scaling.
+// 20250116 [weaver]:	Added TEXT_SPACING.
 //
 //******************************************************************************
 // Notes:
@@ -17,11 +19,12 @@
 package edu.ou.cs.cg.utilities;
 
 //import java.lang.*;
+import java.awt.Point;
 import java.awt.event.*;
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-import com.jogamp.nativewindow.ScalableSurface;
+import com.jogamp.nativewindow.*;
 
 //******************************************************************************
 
@@ -33,6 +36,13 @@ import com.jogamp.nativewindow.ScalableSurface;
  */
 public final class Utilities
 {
+	//**********************************************************************
+	// Public Class Members
+	//**********************************************************************
+
+	// For consistent spacing of text labels in windows
+	public static final int		TEXT_SPACING = 28;
+
 	//**********************************************************************
 	// Private Class Members
 	//**********************************************************************
@@ -51,9 +61,43 @@ public final class Utilities
 	// Request a pixel scale that results in the same pixel and window units.
 	// Used to rectify display scaling issues when in Hi-DPI mode on macOS.
 	// For context see https://jogamp.org/bugzilla//show_bug.cgi?id=741
+	// (Note: This now appears to be a no-op as of...2023/JOGL 2.5.0?)
 	public static void	setIdentityPixelScale(ScalableSurface surface)
 	{
 		surface.setSurfaceScale(PIXEL_SCALE);
+	}
+
+	// Prints the current scaling of the display surface.
+	public static void	printCurrentSurfaceScale(ScalableSurface surface)
+	{
+		float[]		scale = new float[2];
+
+		surface.getCurrentSurfaceScale(scale);
+
+		System.out.println("Current surface scale = [x:" +
+						   scale[0] + ", y:" + scale[1] + "]");
+	}
+
+	// Converts the given window units into pixel units
+	public static java.awt.Point convertToPixelUnits(NativeSurfaceHolder h,
+													 java.awt.Point p)
+	{
+		int[]		point = new int[] {p.x, p.y};
+
+		h.getNativeSurface().convertToPixelUnits(point);
+
+		return new Point(point[0], point[1]);
+	}
+
+	// Converts the given pixel units into window units
+	public static java.awt.Point	convertToWindowUnits(NativeSurfaceHolder h,
+													 	 java.awt.Point p)
+	{
+		int[]		point = new int[] {p.x, p.y};
+
+		h.getNativeSurface().convertToWindowUnits(point);
+
+		return new Point(point[0], point[1]);
 	}
 
 	//**********************************************************************
