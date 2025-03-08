@@ -62,6 +62,7 @@ public final class View
 
 	// State (internal) variables
 	private final GLJPanel				canvas;
+	private GLU	glu = new GLU();
 	private int							w;			// Canvas width
 	private int							h;			// Canvas height
 
@@ -146,8 +147,20 @@ public final class View
 
 	public void	reshape(GLAutoDrawable drawable, int x, int y, int w, int h)
 	{
+		GL2 gl = drawable.getGL().getGL2();
+		
+        if (h == 0) h = 1;
+        float aspect = (float) w / h;
+
+        gl.glMatrixMode(GL2.GL_PROJECTION);
+        gl.glLoadIdentity();
+        glu.gluPerspective(45.0, aspect, 1.0, 100.0);
+        gl.glMatrixMode(GL2.GL_MODELVIEW);
+		
+		/*
 		this.w = w;
 		this.h = h;
+		*/
 	}
 
 	//**********************************************************************
@@ -163,7 +176,7 @@ public final class View
 	{
 		GL2	gl = drawable.getGL().getGL2();
 
-		gl.glClear(GL.GL_COLOR_BUFFER_BIT);		// Clear the buffer
+		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);	// Clear the buffer
 
 		drawMain(gl);							// Draw scene content
 		//drawMode(drawable);						// Draw overlaid mode text
@@ -183,6 +196,8 @@ public final class View
 
 		// See the com.jogamp.opengl.GL API for more on the following settings
 
+		gl.glEnable(GL2.GL_DEPTH_TEST);  // Enable depth testing
+
 		// Smooth points and lines for easier viewing on Hi-DPI displays
 		gl.glEnable(GL2.GL_POINT_SMOOTH);	// Turn on point anti-aliasing
 		gl.glEnable(GL2.GL_LINE_SMOOTH);	// Turn on line anti-aliasing
@@ -196,17 +211,7 @@ public final class View
 	// Translate and scale the projection for drawing the contents of the scene.
 	private void	set3dSpace(GL2 gl)
 	{
-		GLU	glu = GLU.createGLU();
-
-		int width = 16;
-		int height = 9;
-		
-		float aspect = (float) width / height;
-
-		gl.glMatrixMode(GL2.GL_PROJECTION);			// Prepare for matrix xform
 		gl.glLoadIdentity();						// Set to identity matrix
-		glu.gluPerspective(45.0, aspect, 1.0, 100.0);
-        gl.glMatrixMode(GL2.GL_MODELVIEW);
 
 		// Set up the camera (eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ)
 		glu.gluLookAt(0, 0, 5, 0, 0, 0, 0, 1, 0);
