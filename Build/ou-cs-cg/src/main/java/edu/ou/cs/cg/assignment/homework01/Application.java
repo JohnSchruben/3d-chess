@@ -206,18 +206,64 @@ public final class Application
 		m = (int)Math.floor(m * 1.05) + 1;
 	}
 
+	float angle = 0.0f;
 	// Render the scene model and display the current animation frame.
 	private void	render(GLAutoDrawable drawable)
 	{
-		GL2	gl = drawable.getGL().getGL2();
+		GL2 gl = drawable.getGL().getGL2();
+        gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
+        gl.glLoadIdentity();
+        gl.glTranslatef(0.0f, 0.0f, -5.0f);
+        gl.glRotatef(angle, 1.0f, 1.0f, 1.0f);
 
-		gl.glClear(GL.GL_COLOR_BUFFER_BIT);	// Clear the buffer
+        // Draw a Cube
+        gl.glBegin(GL2.GL_QUADS);
+        renderer.setColor(1.0f, 1.0f, 0.0f, 1.0f);
+        // Front Face
+        gl.glColor3f(1, 0, 0);
+        gl.glVertex3f(-1, -1, 1);
+        gl.glVertex3f(1, -1, 1);
+        gl.glVertex3f(1, 1, 1);
+        gl.glVertex3f(-1, 1, 1);
 
-		//setProjection(gl);					// Use a coordinate system
+        // Back Face
+        gl.glColor3f(0, 1, 0);
+        gl.glVertex3f(-1, -1, -1);
+        gl.glVertex3f(-1, 1, -1);
+        gl.glVertex3f(1, 1, -1);
+        gl.glVertex3f(1, -1, -1);
 
-		// Draw the scene
-		drawSomething(gl);						// Draw something
-		drawText(drawable);					// Draw some text
+        // Top Face
+        gl.glColor3f(0, 0, 1);
+        gl.glVertex3f(-1, 1, -1);
+        gl.glVertex3f(-1, 1, 1);
+        gl.glVertex3f(1, 1, 1);
+        gl.glVertex3f(1, 1, -1);
+
+        // Bottom Face
+        gl.glColor3f(1, 1, 0);
+        gl.glVertex3f(-1, -1, -1);
+        gl.glVertex3f(1, -1, -1);
+        gl.glVertex3f(1, -1, 1);
+        gl.glVertex3f(-1, -1, 1);
+
+        // Right face
+        gl.glColor3f(1, 0, 1);
+        gl.glVertex3f(1, -1, -1);
+        gl.glVertex3f(1, 1, -1);
+        gl.glVertex3f(1, 1, 1);
+        gl.glVertex3f(1, -1, 1);
+
+        // Left Face
+        gl.glColor3f(0, 1, 1);
+        gl.glVertex3f(-1, -1, -1);
+        gl.glVertex3f(-1, -1, 1);
+        gl.glVertex3f(-1, 1, 1);
+        gl.glVertex3f(-1, 1, -1);
+
+        gl.glEnd();
+
+        angle += 0.5f;
 
 		gl.glFlush();							// Finish and display
 	}
