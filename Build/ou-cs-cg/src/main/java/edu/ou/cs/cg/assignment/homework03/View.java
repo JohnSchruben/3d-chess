@@ -319,23 +319,23 @@ public final class View
 		return;
 	}
 
-	private void drawBishop(GL2 gl, int x, int y, int z, int color) {
+	private void drawBishop(GL2 gl, int x, int y, int z) {
 		return;
 	}
 
-	private void drawKnight(GL2 gl, int x, int y, int z, int color) {
+	private void drawKnight(GL2 gl, int x, int y, int z) {
 		return;
 	}
 
-	private void drawRook(GL2 gl, int x, int y, int z, int color) {
+	private void drawRook(GL2 gl, int x, int y, int z) {
 		return;
 	}
 
-	private void drawQueen(GL2 gl, int x, int y, int z, int color) {
+	private void drawQueen(GL2 gl, int x, int y, int z) {
 		return;
 	}
 
-	private void drawKing(GL2 gl, int x, int y, int z, int color) {
+	private void drawKing(GL2 gl, int x, int y, int z) {
 		return;
 	}
 
