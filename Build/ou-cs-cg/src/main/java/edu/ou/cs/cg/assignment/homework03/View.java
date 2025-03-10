@@ -192,7 +192,7 @@ public final class View
 	{
 		GL2	gl = drawable.getGL().getGL2();
 
-		gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);	// Black background
+		gl.glClearColor(0.6f, 0.85f, 0.92f, 1.0f);	// baby blue background
 
 		// See the com.jogamp.opengl.GL API for more on the following settings
 
@@ -214,7 +214,8 @@ public final class View
 		gl.glLoadIdentity();						// Set to identity matrix
 
 		// Set up the camera (eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ)
-		glu.gluLookAt(0, 0, 5, 0, 0, 0, 0, 1, 0);
+		// X(left/right), Y(up/down), Z(forward/back)
+		glu.gluLookAt(0, 1.5, 6, 0, 1, 0, 0, 1, 0);
 	}
 
 	//**********************************************************************
@@ -249,10 +250,48 @@ public final class View
 	private void	drawMain(GL2 gl)
 	{
 		set3dSpace(gl);
-		drawCube(gl);
+		//drawCube(gl);
 
 		drawBoard(gl);
 		
+	}
+
+	//color = 0 -> black
+	//color = 1 -> white
+	//includes lighting
+	private void setPieceColor(GL2 gl, int color) {
+
+		// Enable lighting
+		gl.glEnable(GL2.GL_LIGHTING);
+		gl.glEnable(GL2.GL_LIGHT0);  // Enable the first light source
+		gl.glEnable(GL2.GL_NORMALIZE);  // Normalize normals for proper shading
+
+		// Set light properties
+		float[] lightPosition = {1.0f, 2.0f, 2.0f, 1.0f}; // Light position
+		float[] lightAmbient  = {0.2f, 0.2f, 0.2f, 1.0f}; // Ambient light
+		float[] lightDiffuse  = {0.8f, 0.8f, 0.8f, 1.0f}; // Diffuse light (soft shading)
+		float[] lightSpecular = {1.0f, 1.0f, 1.0f, 1.0f}; // Specular highlight
+
+		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, lightPosition, 0);
+		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_AMBIENT, lightAmbient, 0);
+		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, lightDiffuse, 0);
+		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPECULAR, lightSpecular, 0);
+
+		// Enable material shading  
+		float[] materialDiffuse = {1.0f, 1.0f, 1.0f, 1.0f};  // Pawn color (white)
+		if (color == 0){
+			materialDiffuse = new float[]{0.0f, 0.0f, 0.0f, 1.0f}; //Pawn color (black)
+		}
+		float[] materialSpecular = {1.0f, 1.0f, 1.0f, 1.0f}; // Shiny reflection
+		float[] materialShininess = {50.0f}; // Shininess level
+
+		gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_DIFFUSE, materialDiffuse, 0);
+		gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_SPECULAR, materialSpecular, 0);
+		gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_SHININESS, materialShininess, 0);
+
+		// Ensure quads have smooth normals
+		GLUquadric quadric = glu.gluNewQuadric();
+		glu.gluQuadricNormals(quadric, GLU.GLU_SMOOTH);
 	}
 
 	private void drawCube(GL2 gl) {
@@ -270,15 +309,59 @@ public final class View
 		//Move view around board by switching between different camera postitions and angles with the keyboard.
 
 
-		//draw the pieces in their starting position
-		
+		//draw all the pieces in their starting positions
+		setPieceColor(gl, 1);
+		drawPawn(gl, -2, 0, 0);
+
+		setPieceColor(gl, 0);
+		drawPawn(gl, 2, 0, 0);
 
 		return;
 	}
 
-	//color = 0 -> black
-	//color = 1 -> white
-	private void drawPawn(GL2 gl, int x, int y, int z, int color) {
+	private void drawPawn(GL2 gl, int x, int y, int z) {
+		
+		GLUquadric quadric = glu.gluNewQuadric();
+        glu.gluQuadricNormals(quadric, GLU.GLU_SMOOTH);
+
+		gl.glPushMatrix();
+    	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
+
+        // **1. Draw Head (Sphere)**
+        gl.glPushMatrix();
+        gl.glTranslated(0, 2.2, 0); // Move up for the head
+        glu.gluSphere(quadric, 0.45, 32, 32);
+        gl.glPopMatrix();
+
+        // **2. Draw Neck (Small Cylinder)**
+        gl.glPushMatrix();
+        gl.glTranslated(0, 1.7, 0);
+        gl.glRotated(-90, 1, 0, 0); //Surrounds y-axis
+		glu.gluCylinder(quadric, 0.5, 0.5, 0.1, 32, 32);
+		glu.gluDisk(quadric, 0, 0.5, 32, 32); //bottom cap
+		gl.glTranslated(0, 0.1, 0);
+		glu.gluDisk(quadric, 0, 0.5, 32, 32); //top cap
+        gl.glPopMatrix();
+
+        // **3. Draw Body (Tapered Cylinder)**
+        gl.glPushMatrix();
+        gl.glTranslated(0, 0.4, 0);
+		gl.glRotated(-90, 1, 0, 0); //Surrounds y-axis
+        glu.gluCylinder(quadric, 0.5, 0.2, 1.3, 32, 32);
+        gl.glPopMatrix();
+
+        // **4. Draw Base (Short/fat Cylinder)**
+        gl.glPushMatrix();
+        gl.glTranslated(0, 0, 0);
+		gl.glRotated(-90, 1, 0, 0); //Surrounds y-axis
+		glu.gluCylinder(quadric, 0.8, 0.7, 0.4, 32, 32);
+		glu.gluDisk(quadric, 0, 0.8, 32, 32); //bottom cap
+		gl.glTranslated(0, 0.4, 0);
+		glu.gluDisk(quadric, 0, 0.7, 32, 32); //top cap
+        gl.glPopMatrix();
+
+		gl.glPopMatrix();
+
 		return;
 	}
 
