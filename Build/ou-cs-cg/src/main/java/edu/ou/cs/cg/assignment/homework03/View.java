@@ -252,59 +252,11 @@ public final class View
 		set3dSpace(gl);
 		//drawCube(gl);
 
-		drawBoard(gl);
+		drawChessSet(gl);
 		
 	}
 
-	//color = 0 -> black
-	//color = 1 -> white
-	//includes lighting
-	private void setPieceColor(GL2 gl, int color) {
-
-		// Enable lighting
-		gl.glEnable(GL2.GL_LIGHTING);
-		gl.glEnable(GL2.GL_LIGHT0);  // Enable the first light source
-		gl.glEnable(GL2.GL_NORMALIZE);  // Normalize normals for proper shading
-
-		// Set light properties
-		float[] lightPosition = {1.0f, 2.0f, 2.0f, 1.0f}; // Light position
-		float[] lightAmbient  = {0.2f, 0.2f, 0.2f, 1.0f}; // Ambient light
-		float[] lightDiffuse  = {0.8f, 0.8f, 0.8f, 1.0f}; // Diffuse light (soft shading)
-		float[] lightSpecular = {1.0f, 1.0f, 1.0f, 1.0f}; // Specular highlight
-
-		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, lightPosition, 0);
-		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_AMBIENT, lightAmbient, 0);
-		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, lightDiffuse, 0);
-		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPECULAR, lightSpecular, 0);
-
-		// Enable material shading  
-		float[] materialDiffuse = {1.0f, 1.0f, 1.0f, 1.0f};  // Pawn color (white)
-		if (color == 0){
-			materialDiffuse = new float[]{0.0f, 0.0f, 0.0f, 1.0f}; //Pawn color (black)
-		}
-		float[] materialSpecular = {1.0f, 1.0f, 1.0f, 1.0f}; // Shiny reflection
-		float[] materialShininess = {50.0f}; // Shininess level
-
-		gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_DIFFUSE, materialDiffuse, 0);
-		gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_SPECULAR, materialSpecular, 0);
-		gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_SHININESS, materialShininess, 0);
-
-		// Ensure quads have smooth normals
-		GLUquadric quadric = glu.gluNewQuadric();
-		glu.gluQuadricNormals(quadric, GLU.GLU_SMOOTH);
-	}
-
-	private void drawCube(GL2 gl) {
-		// Render a simple cube for testing
-		gl.glBegin(GL2.GL_QUADS);
-		gl.glColor3f(1, 0, 0); gl.glVertex3f(-1, -1, -1);
-		gl.glColor3f(0, 1, 0); gl.glVertex3f(1, -1, -1);
-		gl.glColor3f(0, 0, 1); gl.glVertex3f(1, 1, -1);
-		gl.glColor3f(1, 1, 0); gl.glVertex3f(-1, 1, -1);
-		gl.glEnd();
-	}
-
-	private void drawBoard(GL2 gl) {
+	private void drawChessSet(GL2 gl) {
 		//draw board in middle of space. Keep still.
 		//Move view around board by switching between different camera postitions and angles with the keyboard.
 
@@ -364,7 +316,6 @@ public final class View
         gl.glPopMatrix();
 
 		gl.glPopMatrix();
-
 		return;
 	}
 
@@ -388,9 +339,58 @@ public final class View
 		return;
 	}
 
+	// Render a simple cube for testing
+	private void drawCube(GL2 gl) {
+		gl.glBegin(GL2.GL_QUADS);
+		gl.glColor3f(1, 0, 0); gl.glVertex3f(-1, -1, -1);
+		gl.glColor3f(0, 1, 0); gl.glVertex3f(1, -1, -1);
+		gl.glColor3f(0, 0, 1); gl.glVertex3f(1, 1, -1);
+		gl.glColor3f(1, 1, 0); gl.glVertex3f(-1, 1, -1);
+		gl.glEnd();
+		return;
+	}
+	
 	//**********************************************************************
 	// Private Methods (Utility Functions)
 	//**********************************************************************
+
+	//color = 0 -> black
+	//color = 1 -> white
+	//includes lighting
+	private void setPieceColor(GL2 gl, int color) {
+
+		// Enable lighting
+		gl.glEnable(GL2.GL_LIGHTING);
+		gl.glEnable(GL2.GL_LIGHT0);  // Enable the first light source
+		gl.glEnable(GL2.GL_NORMALIZE);  // Normalize normals for proper shading
+
+		// Set light properties
+		float[] lightPosition = {1.0f, 2.0f, 2.0f, 1.0f}; // Light position
+		float[] lightAmbient  = {0.2f, 0.2f, 0.2f, 1.0f}; // Ambient light
+		float[] lightDiffuse  = {0.8f, 0.8f, 0.8f, 1.0f}; // Diffuse light (soft shading)
+		float[] lightSpecular = {1.0f, 1.0f, 1.0f, 1.0f}; // Specular highlight
+
+		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, lightPosition, 0);
+		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_AMBIENT, lightAmbient, 0);
+		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, lightDiffuse, 0);
+		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPECULAR, lightSpecular, 0);
+
+		// Enable material shading  
+		float[] materialDiffuse = {1.0f, 1.0f, 1.0f, 1.0f};  // Pawn color (white)
+		if (color == 0){
+			materialDiffuse = new float[]{0.0f, 0.0f, 0.0f, 1.0f}; //Pawn color (black)
+		}
+		float[] materialSpecular = {1.0f, 1.0f, 1.0f, 1.0f}; // Shiny reflection
+		float[] materialShininess = {50.0f}; // Shininess level
+
+		gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_DIFFUSE, materialDiffuse, 0);
+		gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_SPECULAR, materialSpecular, 0);
+		gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_SHININESS, materialShininess, 0);
+
+		// Ensure quads have smooth normals
+		GLUquadric quadric = glu.gluNewQuadric();
+		glu.gluQuadricNormals(quadric, GLU.GLU_SMOOTH);
+	}
 
 	private void	setColor(GL2 gl, int r, int g, int b, int a)
 	{
