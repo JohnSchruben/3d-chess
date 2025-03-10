@@ -310,9 +310,12 @@ public final class View
 
 
 		//draw all the pieces in their starting positions
+		
+		//draw white pawn
 		setPieceColor(gl, 1);
 		drawPawn(gl, -2, 0, 0);
 
+		//draw black pawn
 		setPieceColor(gl, 0);
 		drawPawn(gl, 2, 0, 0);
 
