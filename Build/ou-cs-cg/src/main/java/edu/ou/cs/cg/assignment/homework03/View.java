@@ -323,7 +323,7 @@ public final class View
         }
     }
 
-	//makes a hoverhoad light for the chess board
+	//makes a overhead light for the chess board
 	//NOT FINISHED
 	private void createBoardLighting(GL2 gl) {
         float[] lightPosition = {8.0f, 16.0f, 8.0f, 1.0f}; // Position of the light
