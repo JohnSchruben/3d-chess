@@ -1,2 +1,3 @@
 .gradle/
-ou-cs-cg/build/
+Build/ou-cs-cg/build/
+build.gradle
