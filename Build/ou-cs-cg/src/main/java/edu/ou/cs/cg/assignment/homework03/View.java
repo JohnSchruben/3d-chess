@@ -271,10 +271,10 @@ public final class View
 		
 		// Draw all the pieces in their starting positions
 		//draw white pawn
-		drawPawn(gl, boardPositions[1], 0, boardPositions[2], 1);
+		drawPawn(gl, boardPositions[5], 0, boardPositions[6], 1);
 
 		//draw black pawn
-		drawPawn(gl, boardPositions[5], 0, boardPositions[6], 0);
+		drawPawn(gl, boardPositions[1], 0, boardPositions[2], 0);
 		
 
 		return;
