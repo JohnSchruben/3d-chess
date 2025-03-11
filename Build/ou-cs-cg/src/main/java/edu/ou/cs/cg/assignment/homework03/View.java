@@ -388,28 +388,92 @@ public final class View
         gl.glPopMatrix();
 
 		gl.glPopMatrix();
-
 		gl.glDisable(GL2.GL_LIGHTING); //lighting only affects pieces for now.
 		return;
 	}
 
 	private void drawBishop(GL2 gl, float x, float y, float z, int color) {
+
+		GLUquadric quadric = glu.gluNewQuadric();
+        glu.gluQuadricNormals(quadric, GLU.GLU_SMOOTH);
+
+		gl.glPushMatrix();
+    	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
+
+		setPieceColor(gl, quadric, color); //set the color and own light source
+
+		// MAKE THE PIECE
+
+		gl.glPopMatrix();
+		gl.glDisable(GL2.GL_LIGHTING); //lighting only affects pieces for now.
 		return;
 	}
 
 	private void drawKnight(GL2 gl, float x, float y, float z, int color) {
+		
+		GLUquadric quadric = glu.gluNewQuadric();
+        glu.gluQuadricNormals(quadric, GLU.GLU_SMOOTH);
+
+		gl.glPushMatrix();
+    	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
+
+		setPieceColor(gl, quadric, color); //set the color and own light source
+
+		// MAKE THE PIECE
+
+		gl.glPopMatrix();
+		gl.glDisable(GL2.GL_LIGHTING); //lighting only affects pieces for now.
 		return;
 	}
 
 	private void drawRook(GL2 gl, float x, float y, float z, int color) {
+		
+		GLUquadric quadric = glu.gluNewQuadric();
+        glu.gluQuadricNormals(quadric, GLU.GLU_SMOOTH);
+
+		gl.glPushMatrix();
+    	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
+
+		setPieceColor(gl, quadric, color); //set the color and own light source
+
+		// MAKE THE PIECE
+
+		gl.glPopMatrix();
+		gl.glDisable(GL2.GL_LIGHTING); //lighting only affects pieces for now.
 		return;
 	}
 
 	private void drawQueen(GL2 gl, float x, float y, float z, int color) {
+		
+		GLUquadric quadric = glu.gluNewQuadric();
+        glu.gluQuadricNormals(quadric, GLU.GLU_SMOOTH);
+
+		gl.glPushMatrix();
+    	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
+
+		setPieceColor(gl, quadric, color); //set the color and own light source
+
+		// MAKE THE PIECE
+
+		gl.glPopMatrix();
+		gl.glDisable(GL2.GL_LIGHTING); //lighting only affects pieces for now.
 		return;
 	}
 
 	private void drawKing(GL2 gl, float x, float y, float z, int color) {
+		
+		GLUquadric quadric = glu.gluNewQuadric();
+        glu.gluQuadricNormals(quadric, GLU.GLU_SMOOTH);
+
+		gl.glPushMatrix();
+    	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
+
+		setPieceColor(gl, quadric, color); //set the color and own light source
+
+		// MAKE THE PIECE
+
+		gl.glPopMatrix();
+		gl.glDisable(GL2.GL_LIGHTING); //lighting only affects pieces for now.
 		return;
 	}
 
