@@ -271,7 +271,7 @@ public final class View
 		// Draw board in middle of space. Keep still.
 		float tileSize = 2.2f; //width and length of each tile
 		//createBoardLighting(gl); //NOT READY
-		//drawBoardBase(gl); //NOT READY
+		drawBoardBase(gl, tileSize);
 		drawBoardTiles(gl, tileSize);
 
 		//Use as the x and z cords for each of the postions 0 through 7. 0 by 0 is the top left position.
@@ -311,13 +311,12 @@ public final class View
 	}
 	
 	//draw a foundation to the board
-	//NOT FINISHED
-	private void drawBoardBase(GL2 gl) {
-        gl.glColor3f(0.5f, 0.25f, 0.1f); // Wood brown color
+	private void drawBoardBase(GL2 gl, float tileSize) {
+        gl.glColor3f(0.25f, 0.13f, 0.05f); // Wood brown color
         gl.glPushMatrix();
-        gl.glTranslated(4, -0.5, 4);
-        gl.glScalef(1.2f, 0.1f, 1.2f); // Slightly larger than the tile area to create a border
-        glut.glutSolidCube(8.0f);
+        gl.glTranslated(tileSize*4, -0.179, tileSize*4);
+        gl.glScalef(1.07f, 0.02f, 1.07f); // Slightly larger than the tile area to create a border
+        glut.glutSolidCube(tileSize * 8);
         gl.glPopMatrix();
     }
 
