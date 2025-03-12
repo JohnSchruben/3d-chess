@@ -62,8 +62,10 @@ public final class View
 
 	// State (internal) variables
 	private final GLJPanel				canvas;
-	private GLU	glu = new GLU();
-	private GLUT glut = new GLUT();
+	private GLU	glu;
+	private GLUT glut;
+	private GLUquadric quadric;
+
 	private int							w;			// Canvas width
 	private int							h;			// Canvas height
 
@@ -99,6 +101,9 @@ public final class View
 		// Initialize animation
 		animator = new FPSAnimator(canvas, DEFAULT_FRAMES_PER_SECOND);
 		animator.start();
+
+		glu = new GLU();
+		glut = new GLUT();
 	}
 
 	//**********************************************************************
@@ -207,6 +212,9 @@ public final class View
 		// (Warning: Translucency in 3-D is more difficult and expensive!)
 		gl.glEnable(GL.GL_BLEND);			// Turn on color channel blending
 		gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+
+		quadric = glu.gluNewQuadric();
+        glu.gluQuadricNormals(quadric, GLU.GLU_SMOOTH);
 	}
 
 	// Set the camera in the 3D space
@@ -269,6 +277,7 @@ public final class View
 		//Use as the x and z cords for each of the postions 0 through 7. 0 by 0 is the top left position.
 		float[] boardPositions = {tileSize/2, 3*tileSize/2, 5*tileSize/2, 7*tileSize/2, 9*tileSize/2, 11*tileSize/2, 13*tileSize/2, 15*tileSize/2};
 		
+		//Draw all the pieces in their starting positions
 		for(int i = 0; i < 8; i++){
 			for(int j = 0; j < 8; j++){
 
@@ -366,14 +375,11 @@ public final class View
 	//color = 0 -> black
 	//color = 1 -> white
 	private void drawPawn(GL2 gl, float x, float y, float z, int color) {
-		
-		GLUquadric quadric = glu.gluNewQuadric();
-        glu.gluQuadricNormals(quadric, GLU.GLU_SMOOTH);
 
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, quadric, color); //set the color and own light source
+		setPieceColor(gl, color); //set the color and own light source
 
         // **1. Draw Head (Sphere)**
         gl.glPushMatrix();
@@ -400,7 +406,6 @@ public final class View
 
         // **4. Draw Base (Short/fat Cylinder)**
         gl.glPushMatrix();
-        gl.glTranslated(0, 0, 0);
 		gl.glRotated(-90, 1, 0, 0); //Surrounds y-axis
 		glu.gluCylinder(quadric, 0.8, 0.7, 0.4, 32, 32);
 		glu.gluDisk(quadric, 0, 0.8, 32, 32); //bottom cap
@@ -415,13 +420,10 @@ public final class View
 
 	private void drawBishop(GL2 gl, float x, float y, float z, int color) {
 
-		GLUquadric quadric = glu.gluNewQuadric();
-        glu.gluQuadricNormals(quadric, GLU.GLU_SMOOTH);
-
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, quadric, color); //set the color and own light source
+		setPieceColor(gl, color); //set the color and own light source
 
 		// MAKE THE PIECE
 
@@ -431,14 +433,11 @@ public final class View
 	}
 
 	private void drawKnight(GL2 gl, float x, float y, float z, int color) {
-		
-		GLUquadric quadric = glu.gluNewQuadric();
-        glu.gluQuadricNormals(quadric, GLU.GLU_SMOOTH);
 
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, quadric, color); //set the color and own light source
+		setPieceColor(gl, color); //set the color and own light source
 
 		// MAKE THE PIECE
 
@@ -448,14 +447,11 @@ public final class View
 	}
 
 	private void drawRook(GL2 gl, float x, float y, float z, int color) {
-		
-		GLUquadric quadric = glu.gluNewQuadric();
-        glu.gluQuadricNormals(quadric, GLU.GLU_SMOOTH);
 
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, quadric, color); //set the color and own light source
+		setPieceColor(gl, color); //set the color and own light source
 
 		// MAKE THE PIECE
 
@@ -465,14 +461,11 @@ public final class View
 	}
 
 	private void drawQueen(GL2 gl, float x, float y, float z, int color) {
-		
-		GLUquadric quadric = glu.gluNewQuadric();
-        glu.gluQuadricNormals(quadric, GLU.GLU_SMOOTH);
 
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, quadric, color); //set the color and own light source
+		setPieceColor(gl, color); //set the color and own light source
 
 		// MAKE THE PIECE
 
@@ -482,14 +475,11 @@ public final class View
 	}
 
 	private void drawKing(GL2 gl, float x, float y, float z, int color) {
-		
-		GLUquadric quadric = glu.gluNewQuadric();
-        glu.gluQuadricNormals(quadric, GLU.GLU_SMOOTH);
 
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, quadric, color); //set the color and own light source
+		setPieceColor(gl, color); //set the color and own light source
 
 		// MAKE THE PIECE
 
@@ -517,7 +507,7 @@ public final class View
 	//color = 1 -> white
 	//includes a light source for the piece, so it appears as 3D.
 	//USED BY PIECE CREATION METHODS
-	private void setPieceColor(GL2 gl, GLUquadric quadric, int color) {
+	private void setPieceColor(GL2 gl, int color) {
 
 		// Enable lighting
 		gl.glEnable(GL2.GL_LIGHTING);
