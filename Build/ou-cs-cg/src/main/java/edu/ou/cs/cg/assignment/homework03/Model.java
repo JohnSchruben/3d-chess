@@ -53,9 +53,10 @@ public final class Model
 	//**********************************************************************
 
 	// State (internal) variables
-	private final View			view;
+	private final View	view;
 
 	// Model variables
+	private ChessGame game;
 	
 
 	//**********************************************************************
@@ -67,16 +68,16 @@ public final class Model
 		this.view = view;
 
 		// Initialize user-adjustable variables (with reasonable default values)
-		
+		game = new ChessGame();
 	}
 
 	//**********************************************************************
 	// Public Methods (Access Variables)
 	//**********************************************************************
 
-	public boolean	getWhatever()
+	public Piece getPiece(int row, int col)
 	{
-		return true;
+		return this.game.getBoard().getPiece(row, col);
 	}
 
 	//**********************************************************************
@@ -91,6 +92,16 @@ public final class Model
 			}
 		});;
 	}
+	
+	public void	MakeMove(Move move)
+	{
+		view.getCanvas().invoke(false, new BasicUpdater() {
+			public void	update(GL2 gl) {
+				game.makeMove(move);
+			}
+		});;
+	}
+
 
 	public void	PointSet(Point q)
 	{
@@ -144,6 +155,156 @@ public final class Model
 
 		public abstract void	update(double[] p);
 	}
+
+
+	
+public class Board {
+	private Piece[][] squares = new Piece[8][8];
+	
+	public Board() {
+		initialize();  
+	}
+
+	private void initialize(){
+		//black
+		squares[0][0] = new Rook(false);
+		squares[0][1] = new Knight(false);
+		squares[0][2] = new Bishop(false);
+		squares[0][3] = new Queen(false);
+		squares[0][4] = new King(false);
+		squares[0][5] = new Bishop(false);
+		squares[0][6] = new Knight(false);
+		squares[0][7] = new Rook(false);
+	
+		// pawns
+		for (int col = 0; col < 8; col++) {
+			squares[1][col] = new Pawn(false);
+		}
+	
+		for (int row = 2; row <= 5; row++) {
+			for (int col = 0; col < 8; col++) {
+				squares[row][col] = null;
+			}
+		}
+	
+		// white pawns
+		for (int col = 0; col < 8; col++) {
+			squares[6][col] = new Pawn(true);
+		}
+	
+		// white
+		squares[7][0] = new Rook(true);
+		squares[7][1] = new Knight(true);
+		squares[7][2] = new Bishop(true);
+		squares[7][3] = new Queen(true);
+		squares[7][4] = new King(true);
+		squares[7][5] = new Bishop(true);
+		squares[7][6] = new Knight(true);
+		squares[7][7] = new Rook(true);
+	}
+
+	public Piece getPiece(int row, int col) {
+		return squares[row][col];
+	}
+
+	public void setPiece(int row, int col, Piece piece) {
+		squares[row][col] = piece;
+	}
 }
+
+public abstract class Piece {
+	protected boolean isWhite;      
+	protected PieceType type;       
+	
+	public Piece(boolean isWhite, PieceType type) {
+		this.isWhite = isWhite;
+		this.type = type;
+	}
+	
+	public boolean isWhite() {
+		return isWhite;
+	}
+
+}
+
+public class Rook extends Piece {
+	public Rook(boolean isWhite) {
+		super(isWhite, PieceType.ROOK);
+	}
+}
+
+public class Knight extends Piece {
+	public Knight(boolean isWhite) {
+		super(isWhite, PieceType.KNIGHT);
+	}
+}
+
+public class Bishop extends Piece {
+	public Bishop(boolean isWhite) {
+		super(isWhite, PieceType.BISHOP);
+	}
+}
+public class Pawn extends Piece {
+	public Pawn(boolean isWhite) {
+		super(isWhite, PieceType.PAWN);
+	}
+}
+public class King extends Piece {
+	public King(boolean isWhite) {
+		super(isWhite, PieceType.KING);
+	}
+}
+public class Queen extends Piece {
+	public Queen(boolean isWhite) {
+		super(isWhite, PieceType.QUEEN);
+	}
+}
+public class ChessGame {
+	private Board board;
+	private boolean whiteToMove;
+
+	public ChessGame() {
+		board = new Board();
+		whiteToMove = true;
+	}
+
+	public Board getBoard(){
+		return board;
+	}
+
+	public boolean makeMove(Move move) {
+		return false;
+	}
+}
+
+public enum PieceType {
+    PAWN,
+    KNIGHT,
+    BISHOP,
+    ROOK,
+    QUEEN,
+    KING
+}
+
+public class Move {
+	private final int startRow;
+	private final int startCol;
+	private final int endRow;
+	private final int endCol;
+	private final Piece pieceMoved;
+	private Piece pieceCaptured;  
+	private boolean isEnPassant;
+	private boolean isCastling;
+
+	public Move(int startRow, int startCol, int endRow, int endCol, Piece pieceMoved) {
+		this.startRow = startRow;
+		this.startCol = startCol;
+		this.endRow = endRow;
+		this.endCol = endCol;
+		this.pieceMoved = pieceMoved;
+	}
+}
+}
+
 
 //******************************************************************************
