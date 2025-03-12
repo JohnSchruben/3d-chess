@@ -269,12 +269,33 @@ public final class View
 		//Use as the x and z cords for each of the postions 0 through 7. 0 by 0 is the top left position.
 		float[] boardPositions = {tileSize/2, 3*tileSize/2, 5*tileSize/2, 7*tileSize/2, 9*tileSize/2, 11*tileSize/2, 13*tileSize/2, 15*tileSize/2};
 		
-		// Draw all the pieces in their starting positions
-		//draw white pawn
-		drawPawn(gl, boardPositions[5], 0, boardPositions[6], 1);
+		for(int i = 0; i < 8; i++){
+			for(int j = 0; j < 8; j++){
 
-		//draw black pawn
-		drawPawn(gl, boardPositions[1], 0, boardPositions[2], 0);
+				// Draw all the pieces
+				Model.Piece piece = model.getPiece(i, j);
+				if (piece != null){
+					switch(piece.type)
+					{
+						case PAWN:
+						drawPawn(gl, boardPositions[i], 0, boardPositions[j], piece.isWhite ? 1 : 0);
+						break;	
+						case KNIGHT:
+						break;
+						case ROOK:
+						break;
+						case BISHOP:
+						break;
+						case QUEEN:
+						break;
+						case KING:
+						break;
+					}
+				}
+			}
+		}
+		// can you draw the pawns
+		
 		
 
 		return;
