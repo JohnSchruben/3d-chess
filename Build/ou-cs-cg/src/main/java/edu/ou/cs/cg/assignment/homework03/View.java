@@ -220,11 +220,39 @@ public final class View
 	// Set the camera in the 3D space
 	private void	setCamera(GL2 gl)
 	{
-		gl.glLoadIdentity();						// Set to identity matrix
+		gl.glLoadIdentity(); // Set to identity matrix
 
-		// Set up the camera (eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ)
-		// X(left/right), Y(up/down), Z(forward/back)
-		glu.gluLookAt(8.8, 4, 29, 8.8, 1, 8.8, 0, 1, 0); //default postion
+		//Cam move view around board by switching between different camera postitions and angles with the keyboard.
+		switch(model.getCamPosition())
+		{
+			case 0:
+				if (model.getIsHighCam())
+					// Set up the camera (eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ)
+					// X(left/right), Y(up/down), Z(forward/back)
+					glu.gluLookAt(8.8, 13, 29, 8.8, -1, 8.8, 0, 1, 0); 
+				else
+					glu.gluLookAt(8.8, 4, 29, 8.8, 1, 8.8, 0, 1, 0); //side cam: black on left and white on right
+			break;
+			case 1:
+				if (model.getIsHighCam())
+					glu.gluLookAt(29, 13, 8.8, 8.8, -1, 8.8, 0, 1, 0); 
+				else
+					glu.gluLookAt(29, 4, 8.8, 8.8, 1, 8.8, 0, 1, 0); //cam for white piece player
+			break;
+			case 2:
+				if (model.getIsHighCam())
+					glu.gluLookAt(8.8, 13, -11.4, 8.8, -1, 8.8, 0, 1, 0); 
+				else
+					glu.gluLookAt(8.8, 4, -11.4, 8.8, 1, 8.8, 0, 1, 0); //side cam: white on left and black on right
+			break;
+			case 3:
+				if (model.getIsHighCam())
+					glu.gluLookAt(-11.4, 13, 8.8, 8.8, -1, 8.8, 0, 1, 0); 
+				else
+					glu.gluLookAt(-11.4, 4, 8.8, 8.8, 1, 8.8, 0, 1, 0); //cam for black piece player
+			break;
+		}
+		
 	}
 
 	//**********************************************************************
@@ -258,8 +286,8 @@ public final class View
 
 	private void	drawMain(GL2 gl)
 	{
-		setCamera(gl); //default postion
-		// Eventually will move view around board by switching between different camera postitions and angles with the keyboard.
+		setCamera(gl);
+		
 		//drawCube(gl);
 
 		drawChessSet(gl); //Board and pieces
@@ -303,10 +331,7 @@ public final class View
 				}
 			}
 		}
-		// can you draw the pawns
-		
-		
-
+	
 		return;
 	}
 	
@@ -314,7 +339,7 @@ public final class View
 	private void drawBoardBase(GL2 gl, float tileSize) {
         gl.glColor3f(0.25f, 0.13f, 0.05f); // Wood brown color
         gl.glPushMatrix();
-        gl.glTranslated(tileSize*4, -0.179, tileSize*4);
+        gl.glTranslated(tileSize*4, -0.182, tileSize*4);
         gl.glScalef(1.07f, 0.02f, 1.07f); // Slightly larger than the tile area to create a border
         glut.glutSolidCube(tileSize * 8);
         gl.glPopMatrix();
@@ -391,9 +416,9 @@ public final class View
         gl.glTranslated(0, 1.7, 0);
         gl.glRotated(-90, 1, 0, 0); //Surrounds y-axis
 		glu.gluCylinder(quadric, 0.5, 0.5, 0.1, 32, 32);
-		glu.gluDisk(quadric, 0, 0.5, 32, 32); //bottom cap
-		gl.glTranslated(0, 0.1, 0);
-		glu.gluDisk(quadric, 0, 0.5, 32, 32); //top cap
+		glu.gluDisk(quadric, 0.0, 0.5, 32, 1); //bottom cap
+		gl.glTranslated(0, 0, 0.1); //post rotation, z is now up
+		glu.gluDisk(quadric, 0.0, 0.5, 32, 1); //top cap
         gl.glPopMatrix();
 
         // **3. Draw Body (Tapered Cylinder)**
@@ -407,9 +432,9 @@ public final class View
         gl.glPushMatrix();
 		gl.glRotated(-90, 1, 0, 0); //Surrounds y-axis
 		glu.gluCylinder(quadric, 0.8, 0.7, 0.4, 32, 32);
-		glu.gluDisk(quadric, 0, 0.8, 32, 32); //bottom cap
-		gl.glTranslated(0, 0.4, 0);
-		glu.gluDisk(quadric, 0, 0.7, 32, 32); //top cap
+		glu.gluDisk(quadric, 0.0, 0.8, 32, 1); //bottom cap
+		gl.glTranslated(0, 0, 0.4); //post rotation, z is now up
+		glu.gluDisk(quadric, 0.0, 0.7, 32, 1); //top cap
         gl.glPopMatrix();
 
 		gl.glPopMatrix();

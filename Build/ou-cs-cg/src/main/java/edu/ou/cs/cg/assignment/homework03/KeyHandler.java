@@ -71,7 +71,20 @@ public final class KeyHandler extends KeyAdapter
 			case KeyEvent.VK_Q:							// The 'q' key
 				return;
 
+			case KeyEvent.VK_A:							// The 'a' key
+				model.setCamera('l'); 				//move cam left
+				return;
+
 			case KeyEvent.VK_W:							// The 'w' key
+				model.setCamera('f'); 				//move cam forward
+				return;
+
+			case KeyEvent.VK_D:							// The 'd' key
+				model.setCamera('r'); 				//move cam right
+				return;
+			
+			case KeyEvent.VK_S:							// The 's' key
+				model.setCamera('h'); 				//toggle high cam
 				return;
 
 			case KeyEvent.VK_LEFT:						// The left arrow key
