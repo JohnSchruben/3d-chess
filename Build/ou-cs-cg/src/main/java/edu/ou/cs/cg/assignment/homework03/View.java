@@ -301,7 +301,7 @@ public final class View
 		//createBoardLighting(gl); //NOT READY
 		drawBoardBase(gl, tileSize);
 		drawBoardTiles(gl, tileSize);
-
+		
 		//Use as the x and z cords for each of the postions 0 through 7. 0 by 0 is the top left position.
 		float[] boardPositions = {tileSize/2, 3*tileSize/2, 5*tileSize/2, 7*tileSize/2, 9*tileSize/2, 11*tileSize/2, 13*tileSize/2, 15*tileSize/2};
 		
@@ -380,7 +380,7 @@ public final class View
 	//makes a overhead light for the chess board
 	//NOT FINISHED
 	private void createBoardLighting(GL2 gl) {
-        float[] lightPosition = {8.0f, 16.0f, 8.0f, 1.0f}; // Position of the light
+        float[] lightPosition = {8.8f, 16.0f, 8.8f, 0.0f}; // Position of the light
         float[] lightDirection = {0.0f, -1.0f, 0.0f}; // Pointing straight down
         float[] lightDiffuse = {2.0f, 2.0f, 2.0f, 1.0f}; // Stronger white light
         float[] lightSpecular = {2.0f, 2.0f, 2.0f, 1.0f};
@@ -535,16 +535,32 @@ public final class View
 
 		// Enable lighting
 		gl.glEnable(GL2.GL_LIGHTING);
-		gl.glEnable(GL2.GL_LIGHT0);  // Enable the first light source
+		gl.glEnable(GL2.GL_LIGHT0);  // Enable the 0th light source
 		gl.glEnable(GL2.GL_NORMALIZE);  // Normalize normals for proper shading
-
+		
 		// Set light properties
-		float[] lightPosition = {0.0f, 2.0f, 2.0f, 1.0f}; // Light position relative to piece
-		float[] lightAmbient  = {0.2f, 0.2f, 0.2f, 1.0f}; // Ambient light
-		float[] lightDiffuse  = {1.0f, 1.0f, 1.0f, 1.0f}; // Diffuse light (soft shading)
-		float[] lightSpecular = {1.0f, 1.0f, 1.0f, 1.0f}; // Specular highlight
+		float[] lightPosition0 = null; // Light position relative to piece depending on the camera location
+		switch(model.getCamPosition())
+		{
+			case 0:
+				lightPosition0 = new float[]{0.0f, 1.0f, 2.0f, 0.0f};
+			break;
+			case 1:
+				lightPosition0 = new float[]{2.0f, 1.0f, 0.0f, 0.0f};
+			break;
+			case 2:
+				lightPosition0 = new float[]{0.0f, 1.0f, -2.0f, 0.0f};
+			break;
+			case 3:
+				lightPosition0 = new float[]{-2.0f, 1.0f, 0.0f, 0.0f};
+			break;
+		}
+		float[] lightAmbient  = {0.4f, 0.4f, 0.4f, 1.0f}; // Ambient light
+		float[] lightDiffuse = {0.9f, 0.9f, 0.9f, 1.0f}; // Pure white diffuse light
+		float[] lightSpecular = {1.5f, 1.5f, 1.5f, 1.0f}; // Specular highlight
 
-		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, lightPosition, 0);
+		//light0
+		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, lightPosition0, 0);
 		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_AMBIENT, lightAmbient, 0);
 		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, lightDiffuse, 0);
 		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPECULAR, lightSpecular, 0);
@@ -554,8 +570,8 @@ public final class View
 		if (color == 0){
 			materialDiffuse = new float[]{0.0f, 0.0f, 0.0f, 1.0f}; //Pawn color (black)
 		}
-		float[] materialSpecular = {1.0f, 1.0f, 1.0f, 1.0f}; // Shiny reflection
-		float[] materialShininess = {50.0f}; // Shininess level
+		float[] materialSpecular = {0.3f, 0.3f, 0.3f, 1.0f}; // how shiny reflection is
+		float[] materialShininess = {10.0f}; // Shininess level
 
 		gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_DIFFUSE, materialDiffuse, 0);
 		gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_SPECULAR, materialSpecular, 0);
