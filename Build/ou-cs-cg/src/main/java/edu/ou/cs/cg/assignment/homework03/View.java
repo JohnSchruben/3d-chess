@@ -408,33 +408,33 @@ public final class View
         // **1. Draw Head (Sphere)**
         gl.glPushMatrix();
         gl.glTranslated(0, 2.2, 0); // Move up for the head
-        glu.gluSphere(quadric, 0.45, 32, 32);
+        glu.gluSphere(quadric, 0.45, 24, 24);
         gl.glPopMatrix();
 
         // **2. Draw Neck (Small Cylinder)**
         gl.glPushMatrix();
         gl.glTranslated(0, 1.7, 0);
         gl.glRotated(-90, 1, 0, 0); //Surrounds y-axis
-		glu.gluCylinder(quadric, 0.5, 0.5, 0.1, 32, 32);
-		glu.gluDisk(quadric, 0.0, 0.5, 32, 1); //bottom cap
+		glu.gluCylinder(quadric, 0.5, 0.5, 0.1, 16, 1);
+		glu.gluDisk(quadric, 0.0, 0.5, 16, 1); //bottom cap
 		gl.glTranslated(0, 0, 0.1); //post rotation, z is now up
-		glu.gluDisk(quadric, 0.0, 0.5, 32, 1); //top cap
+		glu.gluDisk(quadric, 0.0, 0.5, 16, 1); //top cap
         gl.glPopMatrix();
 
         // **3. Draw Body (Tapered Cylinder)**
         gl.glPushMatrix();
         gl.glTranslated(0, 0.4, 0);
 		gl.glRotated(-90, 1, 0, 0); //Surrounds y-axis
-        glu.gluCylinder(quadric, 0.5, 0.2, 1.3, 32, 32);
+        glu.gluCylinder(quadric, 0.5, 0.2, 1.3, 16, 16);
         gl.glPopMatrix();
 
         // **4. Draw Base (Short/fat Cylinder)**
         gl.glPushMatrix();
 		gl.glRotated(-90, 1, 0, 0); //Surrounds y-axis
-		glu.gluCylinder(quadric, 0.8, 0.7, 0.4, 32, 32);
-		glu.gluDisk(quadric, 0.0, 0.8, 32, 1); //bottom cap
+		glu.gluCylinder(quadric, 0.8, 0.7, 0.4, 24, 8);
+		glu.gluDisk(quadric, 0.0, 0.8, 24, 1); //bottom cap
 		gl.glTranslated(0, 0, 0.4); //post rotation, z is now up
-		glu.gluDisk(quadric, 0.0, 0.7, 32, 1); //top cap
+		glu.gluDisk(quadric, 0.0, 0.7, 24, 1); //top cap
         gl.glPopMatrix();
 
 		gl.glPopMatrix();
