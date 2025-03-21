@@ -220,11 +220,39 @@ public final class View
 	// Set the camera in the 3D space
 	private void	setCamera(GL2 gl)
 	{
-		gl.glLoadIdentity();						// Set to identity matrix
+		gl.glLoadIdentity(); // Set to identity matrix
 
-		// Set up the camera (eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ)
-		// X(left/right), Y(up/down), Z(forward/back)
-		glu.gluLookAt(8.8, 4, 29, 8.8, 1, 8.8, 0, 1, 0); //default postion
+		//Cam move view around board by switching between different camera postitions and angles with the keyboard.
+		switch(model.getCamPosition())
+		{
+			case 0:
+				if (model.getIsHighCam())
+					// Set up the camera (eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ)
+					// X(left/right), Y(up/down), Z(forward/back)
+					glu.gluLookAt(8.8, 13, 29, 8.8, -1, 8.8, 0, 1, 0); 
+				else
+					glu.gluLookAt(8.8, 4, 29, 8.8, 1, 8.8, 0, 1, 0); //side cam: black on left and white on right
+			break;
+			case 1:
+				if (model.getIsHighCam())
+					glu.gluLookAt(29, 13, 8.8, 8.8, -1, 8.8, 0, 1, 0); 
+				else
+					glu.gluLookAt(29, 4, 8.8, 8.8, 1, 8.8, 0, 1, 0); //cam for white piece player
+			break;
+			case 2:
+				if (model.getIsHighCam())
+					glu.gluLookAt(8.8, 13, -11.4, 8.8, -1, 8.8, 0, 1, 0); 
+				else
+					glu.gluLookAt(8.8, 4, -11.4, 8.8, 1, 8.8, 0, 1, 0); //side cam: white on left and black on right
+			break;
+			case 3:
+				if (model.getIsHighCam())
+					glu.gluLookAt(-11.4, 13, 8.8, 8.8, -1, 8.8, 0, 1, 0); 
+				else
+					glu.gluLookAt(-11.4, 4, 8.8, 8.8, 1, 8.8, 0, 1, 0); //cam for black piece player
+			break;
+		}
+		
 	}
 
 	//**********************************************************************
@@ -258,8 +286,8 @@ public final class View
 
 	private void	drawMain(GL2 gl)
 	{
-		setCamera(gl); //default postion
-		// Eventually will move view around board by switching between different camera postitions and angles with the keyboard.
+		setCamera(gl);
+		
 		//drawCube(gl);
 
 		drawChessSet(gl); //Board and pieces
@@ -273,7 +301,7 @@ public final class View
 		//createBoardLighting(gl); //NOT READY
 		drawBoardBase(gl, tileSize);
 		drawBoardTiles(gl, tileSize);
-
+		
 		//Use as the x and z cords for each of the postions 0 through 7. 0 by 0 is the top left position.
 		float[] boardPositions = {tileSize/2, 3*tileSize/2, 5*tileSize/2, 7*tileSize/2, 9*tileSize/2, 11*tileSize/2, 13*tileSize/2, 15*tileSize/2};
 		
@@ -303,10 +331,7 @@ public final class View
 				}
 			}
 		}
-		// can you draw the pawns
-		
-		
-
+	
 		return;
 	}
 	
@@ -314,7 +339,7 @@ public final class View
 	private void drawBoardBase(GL2 gl, float tileSize) {
         gl.glColor3f(0.25f, 0.13f, 0.05f); // Wood brown color
         gl.glPushMatrix();
-        gl.glTranslated(tileSize*4, -0.179, tileSize*4);
+        gl.glTranslated(tileSize*4, -0.182, tileSize*4);
         gl.glScalef(1.07f, 0.02f, 1.07f); // Slightly larger than the tile area to create a border
         glut.glutSolidCube(tileSize * 8);
         gl.glPopMatrix();
@@ -355,7 +380,7 @@ public final class View
 	//makes a overhead light for the chess board
 	//NOT FINISHED
 	private void createBoardLighting(GL2 gl) {
-        float[] lightPosition = {8.0f, 16.0f, 8.0f, 1.0f}; // Position of the light
+        float[] lightPosition = {8.8f, 16.0f, 8.8f, 0.0f}; // Position of the light
         float[] lightDirection = {0.0f, -1.0f, 0.0f}; // Pointing straight down
         float[] lightDiffuse = {2.0f, 2.0f, 2.0f, 1.0f}; // Stronger white light
         float[] lightSpecular = {2.0f, 2.0f, 2.0f, 1.0f};
@@ -383,33 +408,33 @@ public final class View
         // **1. Draw Head (Sphere)**
         gl.glPushMatrix();
         gl.glTranslated(0, 2.2, 0); // Move up for the head
-        glu.gluSphere(quadric, 0.45, 32, 32);
+        glu.gluSphere(quadric, 0.45, 24, 24);
         gl.glPopMatrix();
 
         // **2. Draw Neck (Small Cylinder)**
         gl.glPushMatrix();
         gl.glTranslated(0, 1.7, 0);
         gl.glRotated(-90, 1, 0, 0); //Surrounds y-axis
-		glu.gluCylinder(quadric, 0.5, 0.5, 0.1, 32, 32);
-		glu.gluDisk(quadric, 0, 0.5, 32, 32); //bottom cap
-		gl.glTranslated(0, 0.1, 0);
-		glu.gluDisk(quadric, 0, 0.5, 32, 32); //top cap
+		glu.gluCylinder(quadric, 0.5, 0.5, 0.1, 16, 1);
+		glu.gluDisk(quadric, 0.0, 0.5, 16, 1); //bottom cap
+		gl.glTranslated(0, 0, 0.1); //post rotation, z is now up
+		glu.gluDisk(quadric, 0.0, 0.5, 16, 1); //top cap
         gl.glPopMatrix();
 
         // **3. Draw Body (Tapered Cylinder)**
         gl.glPushMatrix();
         gl.glTranslated(0, 0.4, 0);
 		gl.glRotated(-90, 1, 0, 0); //Surrounds y-axis
-        glu.gluCylinder(quadric, 0.5, 0.2, 1.3, 32, 32);
+        glu.gluCylinder(quadric, 0.5, 0.2, 1.3, 16, 16);
         gl.glPopMatrix();
 
         // **4. Draw Base (Short/fat Cylinder)**
         gl.glPushMatrix();
 		gl.glRotated(-90, 1, 0, 0); //Surrounds y-axis
-		glu.gluCylinder(quadric, 0.8, 0.7, 0.4, 32, 32);
-		glu.gluDisk(quadric, 0, 0.8, 32, 32); //bottom cap
-		gl.glTranslated(0, 0.4, 0);
-		glu.gluDisk(quadric, 0, 0.7, 32, 32); //top cap
+		glu.gluCylinder(quadric, 0.8, 0.7, 0.4, 24, 8);
+		glu.gluDisk(quadric, 0.0, 0.8, 24, 1); //bottom cap
+		gl.glTranslated(0, 0, 0.4); //post rotation, z is now up
+		glu.gluDisk(quadric, 0.0, 0.7, 24, 1); //top cap
         gl.glPopMatrix();
 
 		gl.glPopMatrix();
@@ -510,16 +535,32 @@ public final class View
 
 		// Enable lighting
 		gl.glEnable(GL2.GL_LIGHTING);
-		gl.glEnable(GL2.GL_LIGHT0);  // Enable the first light source
+		gl.glEnable(GL2.GL_LIGHT0);  // Enable the 0th light source
 		gl.glEnable(GL2.GL_NORMALIZE);  // Normalize normals for proper shading
-
+		
 		// Set light properties
-		float[] lightPosition = {0.0f, 2.0f, 2.0f, 1.0f}; // Light position relative to piece
-		float[] lightAmbient  = {0.2f, 0.2f, 0.2f, 1.0f}; // Ambient light
-		float[] lightDiffuse  = {1.0f, 1.0f, 1.0f, 1.0f}; // Diffuse light (soft shading)
-		float[] lightSpecular = {1.0f, 1.0f, 1.0f, 1.0f}; // Specular highlight
+		float[] lightPosition0 = null; // Light position relative to piece depending on the camera location
+		switch(model.getCamPosition())
+		{
+			case 0:
+				lightPosition0 = new float[]{0.0f, 1.0f, 2.0f, 0.0f};
+			break;
+			case 1:
+				lightPosition0 = new float[]{2.0f, 1.0f, 0.0f, 0.0f};
+			break;
+			case 2:
+				lightPosition0 = new float[]{0.0f, 1.0f, -2.0f, 0.0f};
+			break;
+			case 3:
+				lightPosition0 = new float[]{-2.0f, 1.0f, 0.0f, 0.0f};
+			break;
+		}
+		float[] lightAmbient  = {0.4f, 0.4f, 0.4f, 1.0f}; // Ambient light
+		float[] lightDiffuse = {0.9f, 0.9f, 0.9f, 1.0f}; // Pure white diffuse light
+		float[] lightSpecular = {1.5f, 1.5f, 1.5f, 1.0f}; // Specular highlight
 
-		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, lightPosition, 0);
+		//light0
+		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, lightPosition0, 0);
 		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_AMBIENT, lightAmbient, 0);
 		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, lightDiffuse, 0);
 		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPECULAR, lightSpecular, 0);
@@ -529,8 +570,8 @@ public final class View
 		if (color == 0){
 			materialDiffuse = new float[]{0.0f, 0.0f, 0.0f, 1.0f}; //Pawn color (black)
 		}
-		float[] materialSpecular = {1.0f, 1.0f, 1.0f, 1.0f}; // Shiny reflection
-		float[] materialShininess = {50.0f}; // Shininess level
+		float[] materialSpecular = {0.3f, 0.3f, 0.3f, 1.0f}; // how shiny reflection is
+		float[] materialShininess = {10.0f}; // Shininess level
 
 		gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_DIFFUSE, materialDiffuse, 0);
 		gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_SPECULAR, materialSpecular, 0);

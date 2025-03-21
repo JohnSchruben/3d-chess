@@ -57,6 +57,8 @@ public final class Model
 
 	// Model variables
 	private ChessGame game;
+	private int camPosition; //The current of the many numbered positions of the camera
+	private boolean isHighCam; //Whether the camera is high up.
 	
 
 	//**********************************************************************
@@ -69,6 +71,10 @@ public final class Model
 
 		// Initialize user-adjustable variables (with reasonable default values)
 		game = new ChessGame();
+
+		//set defualt camera position
+		camPosition = 0; //board side: Black left and white right.
+		isHighCam = false;
 	}
 
 	//**********************************************************************
@@ -80,6 +86,14 @@ public final class Model
 		return this.game.getBoard().getPiece(row, col);
 	}
 
+	public int getCamPosition() {
+		return camPosition;
+	}
+
+	public boolean getIsHighCam() {
+		return isHighCam;
+	}
+
 	//**********************************************************************
 	// Public Methods (Modify Variables)
 	//**********************************************************************
@@ -89,6 +103,31 @@ public final class Model
 		view.getCanvas().invoke(false, new BasicUpdater() {
 			public void	update(GL2 gl) {
 				
+			}
+		});;
+	}
+
+	//set the camera position to one of the preset positions
+	public void	setCamera(char move)
+	{
+		view.getCanvas().invoke(false, new BasicUpdater() {
+			public void	update(GL2 gl) {
+				
+				switch(move)
+				{
+					case 'l':
+						camPosition = (camPosition + 3) % 4; //move the camera to the position left of it
+					break;	
+					case 'r':
+						camPosition = (camPosition + 1) % 4; //move the camera to the position right of it
+					break;
+					case 'f':
+						camPosition = (camPosition + 2) % 4; //move the camera to the position in front of it
+					break;
+					case 'h':
+						isHighCam = !isHighCam; //toggle high cam setting
+					break;
+				}
 			}
 		});;
 	}
