@@ -317,7 +317,7 @@ public final class View
 					switch(piece.type)
 					{
 						case PAWN:
-						drawPawn(gl, boardPositions[i], 0, boardPositions[j], piece.isWhite ? 1 : 0);
+						drawPawn(gl, boardPositions[i], 0, boardPositions[j], piece);
 						break;	
 						case KNIGHT:
 						break;
@@ -426,12 +426,12 @@ public final class View
 
 	//color = 0 -> black
 	//color = 1 -> white
-	private void drawPawn(GL2 gl, float x, float y, float z, int color) {
+	private void drawPawn(GL2 gl, float x, float y, float z, Model.Piece piece) {
 
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, color); //set the color and own light source
+		setPieceColor(gl, piece.isWhite, piece.isSelected); //set the color and own light source
 
         // **1. Draw Head (Sphere)**
         gl.glPushMatrix();
@@ -470,12 +470,12 @@ public final class View
 		return;
 	}
 
-	private void drawBishop(GL2 gl, float x, float y, float z, int color) {
+	private void drawBishop(GL2 gl, float x, float y, float z, Model.Piece piece) {
 
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, color); //set the color and own light source
+		setPieceColor(gl, piece.isWhite, piece.isSelected); //set the color and own light source
 
 		// MAKE THE PIECE
 
@@ -484,12 +484,12 @@ public final class View
 		return;
 	}
 
-	private void drawKnight(GL2 gl, float x, float y, float z, int color) {
+	private void drawKnight(GL2 gl, float x, float y, float z, Model.Piece piece) {
 
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, color); //set the color and own light source
+		setPieceColor(gl, piece.isWhite, piece.isSelected); //set the color and own light source
 
 		// MAKE THE PIECE
 
@@ -498,12 +498,12 @@ public final class View
 		return;
 	}
 
-	private void drawRook(GL2 gl, float x, float y, float z, int color) {
+	private void drawRook(GL2 gl, float x, float y, float z, Model.Piece piece) {
 
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, color); //set the color and own light source
+		setPieceColor(gl, piece.isWhite, piece.isSelected); //set the color and own light source
 
 		// MAKE THE PIECE
 
@@ -512,12 +512,12 @@ public final class View
 		return;
 	}
 
-	private void drawQueen(GL2 gl, float x, float y, float z, int color) {
+	private void drawQueen(GL2 gl, float x, float y, float z, Model.Piece piece) {
 
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, color); //set the color and own light source
+		setPieceColor(gl, piece.isWhite, piece.isSelected); //set the color and own light source
 
 		// MAKE THE PIECE
 
@@ -526,12 +526,12 @@ public final class View
 		return;
 	}
 
-	private void drawKing(GL2 gl, float x, float y, float z, int color) {
+	private void drawKing(GL2 gl, float x, float y, float z, Model.Piece piece) {
 
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, color); //set the color and own light source
+		setPieceColor(gl, piece.isWhite, piece.isSelected); //set the color and own light source
 
 		// MAKE THE PIECE
 
@@ -559,7 +559,7 @@ public final class View
 	//color = 1 -> white
 	//includes a light source for the piece, so it appears as 3D.
 	//USED BY PIECE CREATION METHODS
-	private void setPieceColor(GL2 gl, int color) {
+	private void setPieceColor(GL2 gl, boolean color, boolean isSelected) {
 
 		// Enable lighting
 		gl.glEnable(GL2.GL_LIGHTING);
@@ -595,12 +595,17 @@ public final class View
 
 		// Enable material shading  
 		float[] materialDiffuse = {1.0f, 1.0f, 1.0f, 1.0f};  // Pawn color (white)
-		if (color == 0){
+		if (!color){
 			materialDiffuse = new float[]{0.0f, 0.0f, 0.0f, 1.0f}; //Pawn color (black)
 		}
+
+		if (isSelected){
+			materialDiffuse = new float[]{1.0f, 0.0f, 0.0f, 1.0f}; // red for selected
+		}
+
 		float[] materialSpecular = {0.3f, 0.3f, 0.3f, 1.0f}; // how shiny reflection is
 		float[] materialShininess = {10.0f}; // Shininess level
-
+		
 		gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_DIFFUSE, materialDiffuse, 0);
 		gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_SPECULAR, materialSpecular, 0);
 		gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_SHININESS, materialShininess, 0);
