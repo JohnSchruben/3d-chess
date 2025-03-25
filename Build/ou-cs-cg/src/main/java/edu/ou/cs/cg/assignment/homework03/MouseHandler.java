@@ -20,6 +20,12 @@ package edu.ou.cs.cg.assignment.homework03;
 import java.awt.*;
 import java.awt.event.*;
 import edu.ou.cs.cg.utilities.Utilities;
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.awt.GLJPanel;
+import com.jogamp.opengl.glu.*;
+import com.jogamp.opengl.util.FPSAnimator;
+import com.jogamp.opengl.util.awt.TextRenderer;
+import com.jogamp.opengl.util.gl2.GLUT;
 
 //******************************************************************************
 
@@ -61,6 +67,7 @@ public final class MouseHandler extends MouseAdapter
 
 	public void		mouseClicked(MouseEvent e)
 	{
+		model.SelectSquare(e.getPoint());
 	}
 
 	public void		mouseEntered(MouseEvent e)
@@ -71,9 +78,11 @@ public final class MouseHandler extends MouseAdapter
 	{
 	}
 
-	public void		mousePressed(MouseEvent e)
+	public void 	mousePressed(MouseEvent e)
 	{
+		
 	}
+	
 
 	public void		mouseReleased(MouseEvent e)
 	{

@@ -37,6 +37,7 @@ import java.awt.geom.Point2D;
 import java.util.*;
 import com.jogamp.opengl.*;
 import edu.ou.cs.cg.utilities.Utilities;
+import java.awt.Rectangle;
 
 //******************************************************************************
 
@@ -59,8 +60,9 @@ public final class Model
 	private ChessGame game;
 	private int camPosition; //The current of the many numbered positions of the camera
 	private boolean isHighCam; //Whether the camera is high up.
-	
-
+	private ArrayList<Point> selectedSquares; // the spot where the user selected a piece or square. 
+	private Tile[][] tiles = new Tile[8][8];
+	private Piece selectedPiece;
 	//**********************************************************************
 	// Constructors and Finalizer
 	//**********************************************************************
@@ -75,6 +77,77 @@ public final class Model
 		//set defualt camera position
 		camPosition = 0; //board side: Black left and white right.
 		isHighCam = false;
+
+		selectedSquares = new ArrayList<Point>();
+		selectedPiece = null;
+	}
+	public Tile getTileAt(Point screenPoint) {
+		for (int row = 0; row < 8; row++) {
+			for (int col = 0; col < 8; col++) {
+				if (tiles[row][col].contains(screenPoint)) {
+					return tiles[row][col];
+				}
+			}
+		}
+		return null;
+	}
+	public void setTile(int row, int col, Rectangle bounds) {
+		tiles[row][col] = new Tile(row, col, bounds);
+	}
+	
+	private Point selectedSquare = null;     // the square where the selected piece is
+
+public void SelectSquare(Point p)
+{
+	Tile tile = getTileAt(p);
+
+	if (tile == null) {
+		System.out.println("Clicked outside the board.");
+		clearSelection();
+		return;
+	}
+
+	int row = tile.row;
+	int col = tile.col;
+	System.out.println("Square clicked: " + row + " " + col);
+
+	Piece clickedPiece = game.board.getPiece(row, col);
+
+	if (selectedPiece == null) {
+		// First click — try to select a piece
+		if (clickedPiece != null) {
+			selectedSquare = new Point(row, col);
+			setSelectedPiece(clickedPiece);
+			System.out.println("Piece selected: " + selectedPiece);
+		}
+	} else {
+		// Second click — try to move the selected piece
+		Point start = selectedSquare;
+		Point end = new Point(row, col);
+
+		Move move = new Move(start.x, start.y, end.x, end.y, selectedPiece);
+		if (game.makeMove(move)) {
+			System.out.println("Move made.");
+		} else {
+			System.out.println("Invalid move.");
+		}
+		clearSelection(); // Always clear after attempting move
+	}
+}
+
+	private void clearSelection() {
+		setSelectedPiece(null);
+		selectedSquare = null;
+	}
+	private void setSelectedPiece(Piece piece){
+		if(selectedPiece != null){
+			selectedPiece.setIsSelected(false);
+		}
+
+		selectedPiece = piece;
+		if (selectedPiece != null){
+			selectedPiece.setIsSelected(true);
+		}
 	}
 
 	//**********************************************************************
@@ -128,6 +201,8 @@ public final class Model
 						isHighCam = !isHighCam; //toggle high cam setting
 					break;
 				}
+
+			view.getCanvas().display();
 			}
 		});;
 	}
@@ -254,16 +329,26 @@ public class Board {
 public abstract class Piece {
 	protected boolean isWhite;      
 	protected PieceType type;       
+	protected boolean isSelected;
 	
 	public Piece(boolean isWhite, PieceType type) {
 		this.isWhite = isWhite;
 		this.type = type;
 	}
-	
+	public void setIsSelected(boolean value) {
+		isSelected = value;
+	}
+	public boolean getIsSelected() {
+		return isSelected;
+	}
 	public boolean isWhite() {
 		return isWhite;
 	}
 
+	@Override
+	public String toString(){
+		return type + " " + (isWhite ? "white" : "black");
+	}
 }
 
 public class Rook extends Piece {
@@ -312,7 +397,25 @@ public class ChessGame {
 	}
 
 	public boolean makeMove(Move move) {
-		return false;
+
+		if(move.pieceMoved == null){
+			System.out.println("move.pieceMoved == null");
+			return false;
+		}
+		System.out.println("move.pieceMoved " + move.pieceMoved);
+		board.setPiece(move.endRow, move.endCol, move.pieceMoved);
+		//capture
+		if (board.squares[move.endRow][move.endCol] != null){
+			System.out.println("capture");
+			move.pieceCaptured = board.squares[move.endRow][move.endCol];
+		}
+
+		//move and clear 
+		board.squares[move.endRow][move.endCol] = move.pieceMoved;
+		board.squares[move.startRow][move.startCol] = null;
+		
+		System.out.println("moved");
+		return true;
 	}
 }
 
@@ -343,6 +446,23 @@ public class Move {
 		this.pieceMoved = pieceMoved;
 	}
 }
+public class Tile {
+	public final int row;
+	public final int col;
+	public final Rectangle bounds; // screen-space bounds (2D)
+
+	public Tile(int col, int row, Rectangle bounds) {
+		this.row = row;
+		this.col = col;
+		this.bounds = bounds;
+	}
+
+	public boolean contains(Point p) {
+		return bounds.contains(p);
+	}
+}
+
+
 }
 
 

@@ -30,6 +30,8 @@ import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.opengl.util.awt.TextRenderer;
 import com.jogamp.opengl.util.gl2.GLUT;
 import edu.ou.cs.cg.utilities.Utilities;
+import java.awt.Rectangle;
+
 
 //******************************************************************************
 
@@ -350,6 +352,15 @@ public final class View
     private void drawBoardTiles(GL2 gl, float tileSize) {
         float startX = 0.0f, startZ = 0.0f; // top-left of top-left tile is at (0, 0, 0)
 		
+		// Setup for projection
+		GLU glu = new GLU();
+		int[] viewport = new int[4];
+		double[] modelview = new double[16];
+		double[] projection = new double[16];
+		gl.glGetIntegerv(GL.GL_VIEWPORT, viewport, 0);
+		gl.glGetDoublev(GL2.GL_MODELVIEW_MATRIX, modelview, 0);
+		gl.glGetDoublev(GL2.GL_PROJECTION_MATRIX, projection, 0);
+
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
                 boolean isDark = (row + col) % 2 == 0;
@@ -361,7 +372,6 @@ public final class View
 
                 float x = startX + col * tileSize;
                 float z = startZ + row * tileSize;
-                
                 gl.glPushMatrix();
                 gl.glTranslated(x, 0, z); // Place tiles above the base
                 
@@ -373,6 +383,24 @@ public final class View
 				gl.glEnd();
 				
                 gl.glPopMatrix();
+
+			// ----- Project to screen space -----
+			double[] screenCoords = new double[3];
+			glu.gluProject(x + tileSize / 2, 0, z + tileSize / 2,  // center of tile
+				modelview, 0, projection, 0, viewport, 0, screenCoords, 0);
+
+			int screenX = (int) screenCoords[0];
+			int screenY = (int) (viewport[3] - screenCoords[1]); // Flip Y for AWT coords
+
+			// Estimate screen-space tile size
+			// Project one tile unit over in X to get width
+			double[] rightCoords = new double[3];
+			glu.gluProject(x + tileSize, 0, z + tileSize / 2,
+				modelview, 0, projection, 0, viewport, 0, rightCoords, 0);
+			int screenSize = (int) Math.abs(rightCoords[0] - screenCoords[0]);
+
+			Rectangle tileRect = new Rectangle(screenX - screenSize/2, screenY - screenSize/2, screenSize, screenSize);
+			model.setTile(row, col, tileRect);
             }
         }
     }
