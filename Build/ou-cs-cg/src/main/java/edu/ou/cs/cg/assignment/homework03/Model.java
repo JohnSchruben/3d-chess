@@ -75,8 +75,8 @@ public final class Model
 		// Initialize user-adjustable variables (with reasonable default values)
 		//board side: Black left and white right.
 		game = new ChessGame();
-		camPosition = 0; 
-		isHighCam = false;
+		camPosition = 1; 
+		isHighCam = true;
 		tiles = new Tile[8][8]; 
 		selectedPiece = null;
 	}
@@ -144,6 +144,11 @@ public final class Model
 	public Piece getPiece(int row, int col)
 	{
 		return this.game.getBoard().getPiece(row, col);
+	}
+
+	public ArrayList<Piece> getCaptures()
+	{
+		return this.game.getBoard().getCaptures();
 	}
 
 	public int getCamPosition() {
@@ -327,6 +332,11 @@ public final class Model
 			return squares[row][col];
 		}
 
+		public ArrayList<Piece> getCaptures()
+		{
+			return captures;
+		}
+	
 		public void setPiece(int row, int col, Piece piece) {
 			Piece existingPiece = squares[row][col];
 			if (existingPiece != null){
