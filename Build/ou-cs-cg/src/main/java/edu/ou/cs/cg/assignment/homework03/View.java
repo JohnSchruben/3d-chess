@@ -382,23 +382,35 @@ public final class View
 				gl.glEnd();
 				
                 gl.glPopMatrix();
+				
+				// Project all four corners
+				double[] corner1 = new double[3];
+				double[] corner2 = new double[3];
+				double[] corner3 = new double[3];
+				double[] corner4 = new double[3];
 
-				// ----- Project to screen space -----
-				double[] screenCoords = new double[3];
-				glu.gluProject(x + tileSize / 2, 0, z + tileSize / 2,  // center of tile
-					modelview, 0, projection, 0, viewport, 0, screenCoords, 0);
+				glu.gluProject(x, 0, z, modelview, 0, projection, 0, viewport, 0, corner1, 0);
+				glu.gluProject(x + tileSize, 0, z, modelview, 0, projection, 0, viewport, 0, corner2, 0);
+				glu.gluProject(x + tileSize, 0, z + tileSize, modelview, 0, projection, 0, viewport, 0, corner3, 0);
+				glu.gluProject(x, 0, z + tileSize, modelview, 0, projection, 0, viewport, 0, corner4, 0);
 
-				int screenX = (int) screenCoords[0];
-				int screenY = (int) (viewport[3] - screenCoords[1]); // Flip Y for AWT coords
+				// Convert to screen space (flip Y)
+				int sx1 = (int) corner1[0];
+				int sy1 = (int) (viewport[3] - corner1[1]);
+				int sx2 = (int) corner2[0];
+				int sy2 = (int) (viewport[3] - corner2[1]);
+				int sx3 = (int) corner3[0];
+				int sy3 = (int) (viewport[3] - corner3[1]);
+				int sx4 = (int) corner4[0];
+				int sy4 = (int) (viewport[3] - corner4[1]);
 
-				// Estimate screen-space tile size
-				// Project one tile unit over in X to get width
-				double[] rightCoords = new double[3];
-				glu.gluProject(x + tileSize, 0, z + tileSize / 2,
-					modelview, 0, projection, 0, viewport, 0, rightCoords, 0);
-				int screenSize = (int) Math.abs(rightCoords[0] - screenCoords[0]);
+				// Find bounds
+				int minX = Math.min(Math.min(sx1, sx2), Math.min(sx3, sx4));
+				int maxX = Math.max(Math.max(sx1, sx2), Math.max(sx3, sx4));
+				int minY = Math.min(Math.min(sy1, sy2), Math.min(sy3, sy4));
+				int maxY = Math.max(Math.max(sy1, sy2), Math.max(sy3, sy4));
 
-				Rectangle tileRect = new Rectangle(screenX - screenSize/2, screenY - screenSize/2, screenSize, screenSize);
+				Rectangle tileRect = new Rectangle(minX, minY, maxX - minX, maxY - minY);
 				model.setTile(row, col, tileRect);
             }
         }
