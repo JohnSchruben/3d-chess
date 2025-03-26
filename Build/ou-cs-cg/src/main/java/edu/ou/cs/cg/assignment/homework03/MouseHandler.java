@@ -67,7 +67,7 @@ public final class MouseHandler extends MouseAdapter
 
 	public void		mouseClicked(MouseEvent e)
 	{
-		model.SelectSquare(e.getPoint());
+		model.selectSquare(e.getPoint());
 	}
 
 	public void		mouseEntered(MouseEvent e)

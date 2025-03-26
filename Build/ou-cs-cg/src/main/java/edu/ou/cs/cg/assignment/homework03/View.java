@@ -21,6 +21,7 @@ package edu.ou.cs.cg.assignment.homework03;
 //import java.lang.*;
 import java.awt.*;
 import java.awt.geom.Point2D;
+import java.nio.channels.Pipe;
 import java.text.DecimalFormat;
 import java.util.*;
 import com.jogamp.opengl.*;
@@ -290,8 +291,6 @@ public final class View
 	{
 		setCamera(gl);
 		
-		//drawCube(gl);
-
 		drawChessSet(gl); //Board and pieces
 		
 	}
@@ -384,23 +383,23 @@ public final class View
 				
                 gl.glPopMatrix();
 
-			// ----- Project to screen space -----
-			double[] screenCoords = new double[3];
-			glu.gluProject(x + tileSize / 2, 0, z + tileSize / 2,  // center of tile
-				modelview, 0, projection, 0, viewport, 0, screenCoords, 0);
+				// ----- Project to screen space -----
+				double[] screenCoords = new double[3];
+				glu.gluProject(x + tileSize / 2, 0, z + tileSize / 2,  // center of tile
+					modelview, 0, projection, 0, viewport, 0, screenCoords, 0);
 
-			int screenX = (int) screenCoords[0];
-			int screenY = (int) (viewport[3] - screenCoords[1]); // Flip Y for AWT coords
+				int screenX = (int) screenCoords[0];
+				int screenY = (int) (viewport[3] - screenCoords[1]); // Flip Y for AWT coords
 
-			// Estimate screen-space tile size
-			// Project one tile unit over in X to get width
-			double[] rightCoords = new double[3];
-			glu.gluProject(x + tileSize, 0, z + tileSize / 2,
-				modelview, 0, projection, 0, viewport, 0, rightCoords, 0);
-			int screenSize = (int) Math.abs(rightCoords[0] - screenCoords[0]);
+				// Estimate screen-space tile size
+				// Project one tile unit over in X to get width
+				double[] rightCoords = new double[3];
+				glu.gluProject(x + tileSize, 0, z + tileSize / 2,
+					modelview, 0, projection, 0, viewport, 0, rightCoords, 0);
+				int screenSize = (int) Math.abs(rightCoords[0] - screenCoords[0]);
 
-			Rectangle tileRect = new Rectangle(screenX - screenSize/2, screenY - screenSize/2, screenSize, screenSize);
-			model.setTile(row, col, tileRect);
+				Rectangle tileRect = new Rectangle(screenX - screenSize/2, screenY - screenSize/2, screenSize, screenSize);
+				model.setTile(row, col, tileRect);
             }
         }
     }
@@ -424,14 +423,12 @@ public final class View
         gl.glLightf(GL2.GL_LIGHT0, GL2.GL_SPOT_EXPONENT, 2.0f); // Softer falloff
 	}
 
-	//color = 0 -> black
-	//color = 1 -> white
 	private void drawPawn(GL2 gl, float x, float y, float z, Model.Piece piece) {
 
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, piece.isWhite, piece.isSelected); //set the color and own light source
+		setPieceColor(gl, piece);//set the color and own light source
 
         // **1. Draw Head (Sphere)**
         gl.glPushMatrix();
@@ -475,7 +472,7 @@ public final class View
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, piece.isWhite, piece.isSelected); //set the color and own light source
+		setPieceColor(gl, piece);//set the color and own light source
 
 		// MAKE THE PIECE
 
@@ -489,7 +486,7 @@ public final class View
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, piece.isWhite, piece.isSelected); //set the color and own light source
+		setPieceColor(gl, piece);//set the color and own light source
 
 		// MAKE THE PIECE
 
@@ -503,7 +500,7 @@ public final class View
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, piece.isWhite, piece.isSelected); //set the color and own light source
+		setPieceColor(gl, piece);//set the color and own light source
 
 		// MAKE THE PIECE
 
@@ -517,7 +514,7 @@ public final class View
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, piece.isWhite, piece.isSelected); //set the color and own light source
+		setPieceColor(gl, piece);//set the color and own light source
 
 		// MAKE THE PIECE
 
@@ -531,7 +528,7 @@ public final class View
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, piece.isWhite, piece.isSelected); //set the color and own light source
+		setPieceColor(gl, piece); //set the color and own light source
 
 		// MAKE THE PIECE
 
@@ -555,11 +552,9 @@ public final class View
 	// Private Methods (Utility Functions)
 	//**********************************************************************
 
-	//color = 0 -> black
-	//color = 1 -> white
 	//includes a light source for the piece, so it appears as 3D.
 	//USED BY PIECE CREATION METHODS
-	private void setPieceColor(GL2 gl, boolean color, boolean isSelected) {
+	private void setPieceColor(GL2 gl,  Model.Piece piece) {
 
 		// Enable lighting
 		gl.glEnable(GL2.GL_LIGHTING);
@@ -595,11 +590,11 @@ public final class View
 
 		// Enable material shading  
 		float[] materialDiffuse = {1.0f, 1.0f, 1.0f, 1.0f};  // Pawn color (white)
-		if (!color){
+		if (!piece.isWhite){
 			materialDiffuse = new float[]{0.0f, 0.0f, 0.0f, 1.0f}; //Pawn color (black)
 		}
 
-		if (isSelected){
+		if (piece.isSelected){
 			materialDiffuse = new float[]{1.0f, 0.0f, 0.0f, 1.0f}; // red for selected
 		}
 
