@@ -302,6 +302,7 @@ public final class View
 		//createBoardLighting(gl); //NOT READY
 		drawBoardBase(gl, tileSize);
 		drawBoardTiles(gl, tileSize);
+		drawCapturedPieces(gl, tileSize, model.getCaptures());
 		
 		//Use as the x and z cords for each of the postions 0 through 7. 0 by 0 is the top left position.
 		float[] boardPositions = {tileSize/2, 3*tileSize/2, 5*tileSize/2, 7*tileSize/2, 9*tileSize/2, 11*tileSize/2, 13*tileSize/2, 15*tileSize/2};
@@ -313,28 +314,76 @@ public final class View
 				// Draw all the pieces
 				Model.Piece piece = model.getPiece(i, j);
 				if (piece != null){
-					switch(piece.type)
-					{
-						case PAWN:
-						drawPawn(gl, boardPositions[i], 0, boardPositions[j], piece);
-						break;	
-						case KNIGHT:
-						break;
-						case ROOK:
-						break;
-						case BISHOP:
-						break;
-						case QUEEN:
-						break;
-						case KING:
-						break;
-					}
+					drawPiece(gl, boardPositions[i], 0, boardPositions[j], piece);
 				}
 			}
 		}
 	
 		return;
 	}
+
+	private void drawPiece(GL2 gl, float x, float y, float z, Model.Piece piece){
+		switch(piece.type)
+		{
+			case PAWN:
+			drawPawn(gl, x, y, z, piece);
+			break;	
+			case KNIGHT:
+			break;
+			case ROOK:
+			break;
+			case BISHOP:
+			break;
+			case QUEEN:
+			break;
+			case KING:
+			break;
+		}
+	}
+
+	private void drawCapturedPieces(GL2 gl, float tileSize, ArrayList<Model.Piece> captured) {
+		float[] boardPositions = {
+			tileSize / 2, 3 * tileSize / 2, 5 * tileSize / 2, 7 * tileSize / 2,
+			9 * tileSize / 2, 11 * tileSize / 2, 13 * tileSize / 2, 15 * tileSize / 2
+		};
+	
+		float y = 0.0f; // Exact same height as the board — adjust if needed
+	
+		ArrayList<Model.Piece> whiteCaptured = new ArrayList<>();
+		ArrayList<Model.Piece> blackCaptured = new ArrayList<>();
+	
+		for (Model.Piece piece : captured) {
+			if (piece.isWhite()) {
+				whiteCaptured.add(piece);
+			} else {
+				blackCaptured.add(piece);
+			}
+		}
+	
+		float whiteX = boardPositions[0] - tileSize;  
+	
+		float blackX = boardPositions[7] + tileSize; 
+	
+		// White captured 
+		for (int i = 0; i < whiteCaptured.size() && i < boardPositions.length; i++) {
+			float z = boardPositions[i];
+			gl.glPushMatrix();
+			gl.glTranslated(whiteX, y, z);
+			drawPiece(gl, whiteX, y,  z/(tileSize*8), whiteCaptured.get(i));
+			gl.glPopMatrix();
+		}
+	
+		// Black captured 
+		for (int i = 0; i < blackCaptured.size() && i < boardPositions.length; i++) {
+			float z = boardPositions[i]; 
+			gl.glPushMatrix();
+			gl.glTranslated(blackX, y, z);
+			drawPiece(gl, whiteX+ tileSize, y, z/(tileSize*8), blackCaptured.get(i));
+			gl.glPopMatrix();
+		}
+	}
+	
+	
 	
 	//draw a foundation to the board
 	private void drawBoardBase(GL2 gl, float tileSize) {
