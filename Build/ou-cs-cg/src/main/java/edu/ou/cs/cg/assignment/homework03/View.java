@@ -21,6 +21,7 @@ package edu.ou.cs.cg.assignment.homework03;
 //import java.lang.*;
 import java.awt.*;
 import java.awt.geom.Point2D;
+import java.nio.channels.Pipe;
 import java.text.DecimalFormat;
 import java.util.*;
 import com.jogamp.opengl.*;
@@ -30,6 +31,8 @@ import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.opengl.util.awt.TextRenderer;
 import com.jogamp.opengl.util.gl2.GLUT;
 import edu.ou.cs.cg.utilities.Utilities;
+import java.awt.Rectangle;
+
 
 //******************************************************************************
 
@@ -288,8 +291,6 @@ public final class View
 	{
 		setCamera(gl);
 		
-		//drawCube(gl);
-
 		drawChessSet(gl); //Board and pieces
 		
 	}
@@ -315,7 +316,7 @@ public final class View
 					switch(piece.type)
 					{
 						case PAWN:
-						drawPawn(gl, boardPositions[i], 0, boardPositions[j], piece.isWhite ? 1 : 0);
+						drawPawn(gl, boardPositions[i], 0, boardPositions[j], piece);
 						break;	
 						case KNIGHT:
 						break;
@@ -350,6 +351,15 @@ public final class View
     private void drawBoardTiles(GL2 gl, float tileSize) {
         float startX = 0.0f, startZ = 0.0f; // top-left of top-left tile is at (0, 0, 0)
 		
+		// Setup for projection
+		GLU glu = new GLU();
+		int[] viewport = new int[4];
+		double[] modelview = new double[16];
+		double[] projection = new double[16];
+		gl.glGetIntegerv(GL.GL_VIEWPORT, viewport, 0);
+		gl.glGetDoublev(GL2.GL_MODELVIEW_MATRIX, modelview, 0);
+		gl.glGetDoublev(GL2.GL_PROJECTION_MATRIX, projection, 0);
+
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
                 boolean isDark = (row + col) % 2 == 0;
@@ -361,7 +371,6 @@ public final class View
 
                 float x = startX + col * tileSize;
                 float z = startZ + row * tileSize;
-                
                 gl.glPushMatrix();
                 gl.glTranslated(x, 0, z); // Place tiles above the base
                 
@@ -373,6 +382,36 @@ public final class View
 				gl.glEnd();
 				
                 gl.glPopMatrix();
+				
+				// Project all four corners
+				double[] corner1 = new double[3];
+				double[] corner2 = new double[3];
+				double[] corner3 = new double[3];
+				double[] corner4 = new double[3];
+
+				glu.gluProject(x, 0, z, modelview, 0, projection, 0, viewport, 0, corner1, 0);
+				glu.gluProject(x + tileSize, 0, z, modelview, 0, projection, 0, viewport, 0, corner2, 0);
+				glu.gluProject(x + tileSize, 0, z + tileSize, modelview, 0, projection, 0, viewport, 0, corner3, 0);
+				glu.gluProject(x, 0, z + tileSize, modelview, 0, projection, 0, viewport, 0, corner4, 0);
+
+				// Convert to screen space (flip Y)
+				int sx1 = (int) corner1[0];
+				int sy1 = (int) (viewport[3] - corner1[1]);
+				int sx2 = (int) corner2[0];
+				int sy2 = (int) (viewport[3] - corner2[1]);
+				int sx3 = (int) corner3[0];
+				int sy3 = (int) (viewport[3] - corner3[1]);
+				int sx4 = (int) corner4[0];
+				int sy4 = (int) (viewport[3] - corner4[1]);
+
+				// Find bounds
+				int minX = Math.min(Math.min(sx1, sx2), Math.min(sx3, sx4));
+				int maxX = Math.max(Math.max(sx1, sx2), Math.max(sx3, sx4));
+				int minY = Math.min(Math.min(sy1, sy2), Math.min(sy3, sy4));
+				int maxY = Math.max(Math.max(sy1, sy2), Math.max(sy3, sy4));
+
+				Rectangle tileRect = new Rectangle(minX, minY, maxX - minX, maxY - minY);
+				model.setTile(row, col, tileRect);
             }
         }
     }
@@ -396,14 +435,12 @@ public final class View
         gl.glLightf(GL2.GL_LIGHT0, GL2.GL_SPOT_EXPONENT, 2.0f); // Softer falloff
 	}
 
-	//color = 0 -> black
-	//color = 1 -> white
-	private void drawPawn(GL2 gl, float x, float y, float z, int color) {
+	private void drawPawn(GL2 gl, float x, float y, float z, Model.Piece piece) {
 
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, color); //set the color and own light source
+		setPieceColor(gl, piece);//set the color and own light source
 
         // **1. Draw Head (Sphere)**
         gl.glPushMatrix();
@@ -442,12 +479,12 @@ public final class View
 		return;
 	}
 
-	private void drawBishop(GL2 gl, float x, float y, float z, int color) {
+	private void drawBishop(GL2 gl, float x, float y, float z, Model.Piece piece) {
 
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, color); //set the color and own light source
+		setPieceColor(gl, piece);//set the color and own light source
 
 		// MAKE THE PIECE
 
@@ -456,12 +493,12 @@ public final class View
 		return;
 	}
 
-	private void drawKnight(GL2 gl, float x, float y, float z, int color) {
+	private void drawKnight(GL2 gl, float x, float y, float z, Model.Piece piece) {
 
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, color); //set the color and own light source
+		setPieceColor(gl, piece);//set the color and own light source
 
 		// MAKE THE PIECE
 
@@ -470,12 +507,12 @@ public final class View
 		return;
 	}
 
-	private void drawRook(GL2 gl, float x, float y, float z, int color) {
+	private void drawRook(GL2 gl, float x, float y, float z, Model.Piece piece) {
 
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, color); //set the color and own light source
+		setPieceColor(gl, piece);//set the color and own light source
 
 		// MAKE THE PIECE
 
@@ -484,12 +521,12 @@ public final class View
 		return;
 	}
 
-	private void drawQueen(GL2 gl, float x, float y, float z, int color) {
+	private void drawQueen(GL2 gl, float x, float y, float z, Model.Piece piece) {
 
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, color); //set the color and own light source
+		setPieceColor(gl, piece);//set the color and own light source
 
 		// MAKE THE PIECE
 
@@ -498,12 +535,12 @@ public final class View
 		return;
 	}
 
-	private void drawKing(GL2 gl, float x, float y, float z, int color) {
+	private void drawKing(GL2 gl, float x, float y, float z, Model.Piece piece) {
 
 		gl.glPushMatrix();
     	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
 
-		setPieceColor(gl, color); //set the color and own light source
+		setPieceColor(gl, piece); //set the color and own light source
 
 		// MAKE THE PIECE
 
@@ -527,11 +564,9 @@ public final class View
 	// Private Methods (Utility Functions)
 	//**********************************************************************
 
-	//color = 0 -> black
-	//color = 1 -> white
 	//includes a light source for the piece, so it appears as 3D.
 	//USED BY PIECE CREATION METHODS
-	private void setPieceColor(GL2 gl, int color) {
+	private void setPieceColor(GL2 gl,  Model.Piece piece) {
 
 		// Enable lighting
 		gl.glEnable(GL2.GL_LIGHTING);
@@ -567,12 +602,17 @@ public final class View
 
 		// Enable material shading  
 		float[] materialDiffuse = {1.0f, 1.0f, 1.0f, 1.0f};  // Pawn color (white)
-		if (color == 0){
+		if (!piece.isWhite){
 			materialDiffuse = new float[]{0.0f, 0.0f, 0.0f, 1.0f}; //Pawn color (black)
 		}
+
+		if (piece.isSelected){
+			materialDiffuse = new float[]{1.0f, 0.0f, 0.0f, 1.0f}; // red for selected
+		}
+
 		float[] materialSpecular = {0.3f, 0.3f, 0.3f, 1.0f}; // how shiny reflection is
 		float[] materialShininess = {10.0f}; // Shininess level
-
+		
 		gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_DIFFUSE, materialDiffuse, 0);
 		gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_SPECULAR, materialSpecular, 0);
 		gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_SHININESS, materialShininess, 0);

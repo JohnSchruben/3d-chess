@@ -37,6 +37,7 @@ import java.awt.geom.Point2D;
 import java.util.*;
 import com.jogamp.opengl.*;
 import edu.ou.cs.cg.utilities.Utilities;
+import java.awt.Rectangle;
 
 //******************************************************************************
 
@@ -57,9 +58,11 @@ public final class Model
 
 	// Model variables
 	private ChessGame game;
-	private int camPosition; //The current of the many numbered positions of the camera
-	private boolean isHighCam; //Whether the camera is high up.
-	
+	private int camPosition; 				//The current of the many numbered positions of the camera
+	private boolean isHighCam; 				//Whether the camera is high up.
+	private Tile[][] tiles;					// used to hit test
+	private Piece selectedPiece;
+	private Point selectedSquare = null;     // the square where the selected piece is
 
 	//**********************************************************************
 	// Constructors and Finalizer
@@ -70,16 +73,73 @@ public final class Model
 		this.view = view;
 
 		// Initialize user-adjustable variables (with reasonable default values)
+		//board side: Black left and white right.
 		game = new ChessGame();
-
-		//set defualt camera position
-		camPosition = 0; //board side: Black left and white right.
+		camPosition = 0; 
 		isHighCam = false;
+		tiles = new Tile[8][8]; 
+		selectedPiece = null;
 	}
 
 	//**********************************************************************
 	// Public Methods (Access Variables)
 	//**********************************************************************
+
+	public Tile getTileAt(Point screenPoint) {
+		for (int row = 0; row < 8; row++) {
+			for (int col = 0; col < 8; col++) {
+				if (tiles[row][col].contains(screenPoint)) {
+					return tiles[row][col];
+				}
+			}
+		}
+		return null;
+	}
+
+	// gets called on the view on every render
+	public void setTile(int row, int col, Rectangle bounds) {
+		tiles[row][col] = new Tile(row, col, bounds);
+	}
+	
+	public void selectSquare(Point p)
+	{
+		Tile tile = getTileAt(p);
+
+		if (tile == null) {
+			System.out.println("Clicked outside the board.");
+			clearSelection();
+			return;
+		}
+
+		int row = tile.row;
+		int col = tile.col;
+		System.out.println("Square clicked: " + row + " " + col);
+
+		Piece clickedPiece = game.board.getPiece(row, col);
+
+		if (selectedPiece == null) {
+			// First click — try to select a piece
+			if (clickedPiece != null) {
+				selectedSquare = new Point(row, col);
+				setSelectedPiece(clickedPiece);
+				System.out.println("Piece selected: " + selectedPiece);
+			}
+		} else if(selectedPiece == clickedPiece){
+			setSelectedPiece(null);
+		} else {
+			// Second click — try to move the selected piece
+			Point start = selectedSquare;
+			Point end = new Point(row, col);
+
+			Move move = new Move(start.x, start.y, end.x, end.y, selectedPiece);
+			if (game.makeMove(move)) {
+				System.out.println("Move made.");
+			} else {
+				System.out.println("Invalid move.");
+			}
+			clearSelection(); // Always clear after attempting move
+		}
+	}
 
 	public Piece getPiece(int row, int col)
 	{
@@ -128,11 +188,13 @@ public final class Model
 						isHighCam = !isHighCam; //toggle high cam setting
 					break;
 				}
+
+			view.getCanvas().display();
 			}
 		});;
 	}
 	
-	public void	MakeMove(Move move)
+	public void	makeMove(Move move)
 	{
 		view.getCanvas().invoke(false, new BasicUpdater() {
 			public void	update(GL2 gl) {
@@ -141,7 +203,6 @@ public final class Model
 		});;
 	}
 
-
 	public void	PointSet(Point q)
 	{
 		view.getCanvas().invoke(false, new ViewPointUpdater(q) {
@@ -149,6 +210,28 @@ public final class Model
 				
 			}
 		});;
+	}
+
+	//**********************************************************************
+	// private methods
+	//**********************************************************************
+
+	// clears and unselects piece
+	private void clearSelection() {
+		setSelectedPiece(null);
+		selectedSquare = null;
+	}
+
+	// sets and selects piece
+	private void setSelectedPiece(Piece piece){
+		if(selectedPiece != null){
+			selectedPiece.setIsSelected(false);
+		}
+
+		selectedPiece = piece;
+		if (selectedPiece != null){
+			selectedPiece.setIsSelected(true);
+		}
 	}
 
 	//**********************************************************************
@@ -195,155 +278,189 @@ public final class Model
 		public abstract void	update(double[] p);
 	}
 
-
-	
-public class Board {
-	private Piece[][] squares = new Piece[8][8];
-	
-	public Board() {
-		initialize();  
-	}
-
-	private void initialize(){
-		//black
-		squares[0][0] = new Rook(false);
-		squares[0][1] = new Knight(false);
-		squares[0][2] = new Bishop(false);
-		squares[0][3] = new Queen(false);
-		squares[0][4] = new King(false);
-		squares[0][5] = new Bishop(false);
-		squares[0][6] = new Knight(false);
-		squares[0][7] = new Rook(false);
-	
-		// pawns
-		for (int col = 0; col < 8; col++) {
-			squares[1][col] = new Pawn(false);
+	public class Board {
+		private Piece[][] squares = new Piece[8][8];
+		private ArrayList<Piece> captures = new ArrayList<Piece>();
+		public Board() {
+			initialize();  
 		}
-	
-		for (int row = 2; row <= 5; row++) {
+
+		private void initialize(){
+			//black
+			squares[0][0] = new Rook(false);
+			squares[0][1] = new Knight(false);
+			squares[0][2] = new Bishop(false);
+			squares[0][3] = new Queen(false);
+			squares[0][4] = new King(false);
+			squares[0][5] = new Bishop(false);
+			squares[0][6] = new Knight(false);
+			squares[0][7] = new Rook(false);
+		
+			// pawns
 			for (int col = 0; col < 8; col++) {
-				squares[row][col] = null;
+				squares[1][col] = new Pawn(false);
 			}
+		
+			for (int row = 2; row <= 5; row++) {
+				for (int col = 0; col < 8; col++) {
+					squares[row][col] = null;
+				}
+			}
+		
+			// white pawns
+			for (int col = 0; col < 8; col++) {
+				squares[6][col] = new Pawn(true);
+			}
+		
+			// white
+			squares[7][0] = new Rook(true);
+			squares[7][1] = new Knight(true);
+			squares[7][2] = new Bishop(true);
+			squares[7][3] = new Queen(true);
+			squares[7][4] = new King(true);
+			squares[7][5] = new Bishop(true);
+			squares[7][6] = new Knight(true);
+			squares[7][7] = new Rook(true);
 		}
-	
-		// white pawns
-		for (int col = 0; col < 8; col++) {
-			squares[6][col] = new Pawn(true);
+
+		public Piece getPiece(int row, int col) {
+			return squares[row][col];
 		}
+
+		public void setPiece(int row, int col, Piece piece) {
+			Piece existingPiece = squares[row][col];
+			if (existingPiece != null){
+				captures.add(existingPiece);
+			}
+
+			squares[row][col] = piece;
+		}
+	}
+
+	public abstract class Piece {
+		protected boolean isWhite;      
+		protected PieceType type;       
+		protected boolean isSelected;
+		
+		public Piece(boolean isWhite, PieceType type) {
+			this.isWhite = isWhite;
+			this.type = type;
+		}
+		public void setIsSelected(boolean value) {
+			isSelected = value;
+		}
+		public boolean getIsSelected() {
+			return isSelected;
+		}
+		public boolean isWhite() {
+			return isWhite;
+		}
+
+		@Override
+		public String toString(){
+			return type + " " + (isWhite ? "white" : "black");
+		}
+	}
+	public class Rook extends Piece {
+		public Rook(boolean isWhite) {
+			super(isWhite, PieceType.ROOK);
+		}
+	}
+	public class Knight extends Piece {
+		public Knight(boolean isWhite) {
+			super(isWhite, PieceType.KNIGHT);
+		}
+	}
+	public class Bishop extends Piece {
+		public Bishop(boolean isWhite) {
+			super(isWhite, PieceType.BISHOP);
+		}
+	}
+	public class Pawn extends Piece {
+		public Pawn(boolean isWhite) {
+			super(isWhite, PieceType.PAWN);
+		}
+	}
+	public class King extends Piece {
+		public King(boolean isWhite) {
+			super(isWhite, PieceType.KING);
+		}
+	}
+	public class Queen extends Piece {
+		public Queen(boolean isWhite) {
+			super(isWhite, PieceType.QUEEN);
+		}
+	}
 	
-		// white
-		squares[7][0] = new Rook(true);
-		squares[7][1] = new Knight(true);
-		squares[7][2] = new Bishop(true);
-		squares[7][3] = new Queen(true);
-		squares[7][4] = new King(true);
-		squares[7][5] = new Bishop(true);
-		squares[7][6] = new Knight(true);
-		squares[7][7] = new Rook(true);
+	public class ChessGame {
+		private Board board;
+
+		public ChessGame() {
+			board = new Board();
+		}
+
+		public Board getBoard(){
+			return board;
+		}
+
+		public boolean makeMove(Move move) {
+
+			if(move.pieceMoved == null){
+				System.out.println("move.pieceMoved == null");
+				return false;
+			}
+
+			System.out.println("move.pieceMoved " + move.pieceMoved);
+			board.setPiece(move.endRow, move.endCol, move.pieceMoved);
+			
+			//move and clear 
+			board.squares[move.endRow][move.endCol] = move.pieceMoved;
+			board.squares[move.startRow][move.startCol] = null;
+			
+			System.out.println("moved");
+			return true;
+		}
 	}
 
-	public Piece getPiece(int row, int col) {
-		return squares[row][col];
+	public enum PieceType {
+		PAWN,
+		KNIGHT,
+		BISHOP,
+		ROOK,
+		QUEEN,
+		KING
 	}
 
-	public void setPiece(int row, int col, Piece piece) {
-		squares[row][col] = piece;
+	public class Move {
+		private final int startRow;
+		private final int startCol;
+		private final int endRow;
+		private final int endCol;
+		private final Piece pieceMoved;
+		public Move(int startRow, int startCol, int endRow, int endCol, Piece pieceMoved) {
+			this.startRow = startRow;
+			this.startCol = startCol;
+			this.endRow = endRow;
+			this.endCol = endCol;
+			this.pieceMoved = pieceMoved;
+		}
+	}
+
+	public class Tile {
+		public final int row;
+		public final int col;
+		public final Rectangle bounds; // screen-space bounds (2D)
+
+		public Tile(int col, int row, Rectangle bounds) {
+			this.row = row;
+			this.col = col;
+			this.bounds = bounds;
+		}
+
+		public boolean contains(Point p) {
+			return bounds.contains(p);
+		}
 	}
 }
-
-public abstract class Piece {
-	protected boolean isWhite;      
-	protected PieceType type;       
-	
-	public Piece(boolean isWhite, PieceType type) {
-		this.isWhite = isWhite;
-		this.type = type;
-	}
-	
-	public boolean isWhite() {
-		return isWhite;
-	}
-
-}
-
-public class Rook extends Piece {
-	public Rook(boolean isWhite) {
-		super(isWhite, PieceType.ROOK);
-	}
-}
-
-public class Knight extends Piece {
-	public Knight(boolean isWhite) {
-		super(isWhite, PieceType.KNIGHT);
-	}
-}
-
-public class Bishop extends Piece {
-	public Bishop(boolean isWhite) {
-		super(isWhite, PieceType.BISHOP);
-	}
-}
-public class Pawn extends Piece {
-	public Pawn(boolean isWhite) {
-		super(isWhite, PieceType.PAWN);
-	}
-}
-public class King extends Piece {
-	public King(boolean isWhite) {
-		super(isWhite, PieceType.KING);
-	}
-}
-public class Queen extends Piece {
-	public Queen(boolean isWhite) {
-		super(isWhite, PieceType.QUEEN);
-	}
-}
-public class ChessGame {
-	private Board board;
-	private boolean whiteToMove;
-
-	public ChessGame() {
-		board = new Board();
-		whiteToMove = true;
-	}
-
-	public Board getBoard(){
-		return board;
-	}
-
-	public boolean makeMove(Move move) {
-		return false;
-	}
-}
-
-public enum PieceType {
-    PAWN,
-    KNIGHT,
-    BISHOP,
-    ROOK,
-    QUEEN,
-    KING
-}
-
-public class Move {
-	private final int startRow;
-	private final int startCol;
-	private final int endRow;
-	private final int endCol;
-	private final Piece pieceMoved;
-	private Piece pieceCaptured;  
-	private boolean isEnPassant;
-	private boolean isCastling;
-
-	public Move(int startRow, int startCol, int endRow, int endCol, Piece pieceMoved) {
-		this.startRow = startRow;
-		this.startCol = startCol;
-		this.endRow = endRow;
-		this.endCol = endCol;
-		this.pieceMoved = pieceMoved;
-	}
-}
-}
-
 
 //******************************************************************************
