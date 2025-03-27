@@ -75,7 +75,7 @@ public final class Model
 		// Initialize user-adjustable variables (with reasonable default values)
 		//board side: Black left and white right.
 		game = new ChessGame();
-		camPosition = 1; 
+		camPosition = 3; 
 		isHighCam = true;
 		tiles = new Tile[8][8]; 
 		selectedPiece = null;
@@ -146,6 +146,11 @@ public final class Model
 		return this.game.getBoard().getPiece(row, col);
 	}
 
+	public ArrayList<Piece> getAnimatingPieces()
+	{
+		return this.game.getBoard().getAnimatingPieces();
+	}
+
 	public ArrayList<Piece> getCaptures()
 	{
 		return this.game.getBoard().getCaptures();
@@ -198,7 +203,14 @@ public final class Model
 			}
 		});;
 	}
-	
+	public void	updateAnimations()
+	{
+		view.getCanvas().invoke(false, new BasicUpdater() {
+			public void	update(GL2 gl) {
+				game.board.updateAnimations();
+			}
+		});;
+	}
 	public void	makeMove(Move move)
 	{
 		view.getCanvas().invoke(false, new BasicUpdater() {
@@ -286,6 +298,8 @@ public final class Model
 	public class Board {
 		private Piece[][] squares = new Piece[8][8];
 		private ArrayList<Piece> captures = new ArrayList<Piece>();
+		private final ArrayList<Piece> animatingPieces = new ArrayList<>();
+
 		public Board() {
 			initialize();  
 		}
@@ -332,26 +346,88 @@ public final class Model
 			return squares[row][col];
 		}
 
+		public ArrayList<Piece> getAnimatingPieces()
+		{
+			return animatingPieces;
+		}
 		public ArrayList<Piece> getCaptures()
 		{
 			return captures;
 		}
-	
-		public void setPiece(int row, int col, Piece piece) {
-			Piece existingPiece = squares[row][col];
+		public void updateAnimations() {
+			Iterator<Piece> it = animatingPieces.iterator();
+			while (it.hasNext()) {
+				Piece p = it.next();
+				p.tickAnimation();
+		
+				if (!p.isAnimating()) {
+					System.out.println("@!isAnimating");
+		
+					Animation a = p.getAnimation();
+					if (a instanceof MoveAnimation) {
+						System.out.println("Animation is MoveAnimation!");
+						MoveAnimation anim = (MoveAnimation) a;
+						squares[anim.getDestRow()][anim.getDestCol()] = p;
+					}
+					else if (a instanceof CapturedAnimation)  {
+						System.out.println("Animation is CapturedAnimation!");
+						CapturedAnimation anim = (CapturedAnimation) a;
+						//squares[anim.getDestRow()][anim.getDestCol()] = null;
+						captures.add(p);
+					}
+					else if (a instanceof AttackAnimation)  {
+						System.out.println("Animation is AttackAnimation!");
+						AttackAnimation anim = (AttackAnimation) a;
+						squares[anim.getDestRow()][anim.getDestCol()] = p;
+					}
+		
+					p.setAnimation(null); // Now safe to clear
+					it.remove();
+				} 
+			}
+		}
+		
+		public void setPiece(Move move, Piece piece) {
+			Piece existingPiece = squares[move.endRow][move.endCol];
 			if (existingPiece != null){
-				captures.add(existingPiece);
+				existingPiece.setAnimation(new CapturedAnimation(existingPiece.isWhite, move.endRow, move.endCol, 60));
+				animatingPieces.add(existingPiece);
+				squares[move.endRow][move.endCol] = null;
+				piece.setAnimation(new AttackAnimation(move.startRow, move.startCol, move.endRow, move.endCol, 30));
+			}
+			else{
+				piece.setAnimation(new MoveAnimation(move.startRow, move.startCol, move.endRow, move.endCol, 60));
 			}
 
-			squares[row][col] = piece;
+			animatingPieces.add(piece);
+			squares[move.startRow][move.startCol] = null;
 		}
 	}
 
 	public abstract class Piece {
-		protected boolean isWhite;      
+		protected boolean isWhite;     
+		private Animation animation;
+
 		protected PieceType type;       
 		protected boolean isSelected;
-		
+		public Animation getAnimation() {
+			return animation;
+		}
+
+		public void setAnimation(Animation animation) {
+			this.animation = animation;
+		}
+
+		public boolean isAnimating() {
+			return animation != null && !animation.isDone();
+		}
+
+		public void tickAnimation() {
+			if (animation != null) {
+				animation.tick();
+			}
+		}
+
 		public Piece(boolean isWhite, PieceType type) {
 			this.isWhite = isWhite;
 			this.type = type;
@@ -416,18 +492,11 @@ public final class Model
 		public boolean makeMove(Move move) {
 
 			if(move.pieceMoved == null){
-				System.out.println("move.pieceMoved == null");
 				return false;
 			}
 
 			System.out.println("move.pieceMoved " + move.pieceMoved);
-			board.setPiece(move.endRow, move.endCol, move.pieceMoved);
-			
-			//move and clear 
-			board.squares[move.endRow][move.endCol] = move.pieceMoved;
-			board.squares[move.startRow][move.startCol] = null;
-			
-			System.out.println("moved");
+			board.setPiece(move, move.pieceMoved);
 			return true;
 		}
 	}
@@ -469,6 +538,148 @@ public final class Model
 
 		public boolean contains(Point p) {
 			return bounds.contains(p);
+		}
+	}
+
+	public abstract class Animation {
+		protected int counter = 0;
+		protected int duration;
+	
+		public Animation(int duration) {
+			this.duration = duration;
+		}
+	
+		public void tick() {
+			counter++;
+		}
+	
+		public boolean isDone() {
+			return counter >= duration;
+		}
+	
+		public float getProgress() {
+			return Math.min(1.0f, (float) counter / duration);
+		}
+	
+		public abstract void applyTransform(GL2 gl,  float startX, float startZ, float endX, float endZ) ;
+		public abstract int getStartRow();
+		public abstract int getStartCol();
+		public abstract int  getDestRow();
+		public abstract int getDestCol();
+	}
+	public class MoveAnimation extends Animation {
+		private final int destRow, destCol;
+		private final int startRow, startCol;
+	
+		public MoveAnimation(int startRow, int startCol, int destRow, int destCol, int duration) {
+			super(duration);
+			this.destRow = destRow;
+			this.destCol = destCol;
+			this.startRow = startRow;
+			this.startCol = startCol;
+		}
+	
+		@Override
+		public int getStartRow() { return startRow; }
+		@Override
+		public int getStartCol() { return startCol; }
+		@Override
+		public int getDestRow() { return destRow; }
+		@Override
+		public int getDestCol() { return destCol; }
+	
+		@Override
+		public void applyTransform(GL2 gl,  float startX, float startZ, float endX, float endZ)  {
+			float t = getProgress();
+			float x = startX + (endX - startX) * t;
+			float z = startZ + (endZ - startZ) * t;
+		
+			gl.glTranslatef(x, 0.0f, z);
+		}
+	}
+	public class CapturedAnimation extends Animation {
+		private final int destRow, destCol;
+		private final boolean isWhite;
+		public CapturedAnimation(boolean isWhite, int destRow, int destCol, int duration) {
+			super(duration);
+			this.isWhite = isWhite;
+			this.destRow = destRow;
+			this.destCol = destCol;
+		}
+	
+		@Override
+		public int getStartRow() { return destRow; }
+		@Override
+		public int getStartCol() { return destCol; }
+		@Override
+		public int getDestRow() { return isWhite ? 0:7; }
+		@Override
+		public int getDestCol() { return isWhite ? 0:7; }
+	
+		@Override
+		public void applyTransform(GL2 gl, float startX, float startZ, float endX, float endZ) {
+			float t = getProgress();
+
+			// Interpolate position
+			float x = startX + (endX - startX) * t;
+			float z = startZ + (endZ - startZ) * t;
+
+			// Movement direction in degrees (so piece rotates forward in its movement direction)
+			float dx = endX - startX;
+			float dz = endZ - startZ;
+			float movementAngle = (float) Math.toDegrees(Math.atan2(dx, dz)); // rotate around Y to face movement
+
+			// Somersault angle (full forward flips)
+			float somersaultAngle = 360.0f * t * 2f; // 2 full flips
+
+			// Apply transforms
+			gl.glTranslatef(x, 2.0f, z);                    // Move to position
+			gl.glRotatef(movementAngle, 0, 1, 0);           // Face movement direction
+			gl.glRotatef(somersaultAngle, 1, 0, 0);         // Somersault forward (rotate around X)
+		}
+
+	}
+	public class AttackAnimation extends Animation {
+		private final int destRow, destCol;
+		private final int startRow, startCol;
+	
+		public AttackAnimation(int startRow, int startCol, int destRow, int destCol, int duration) {
+			super(duration);
+			this.destRow = destRow;
+			this.destCol = destCol;
+			this.startRow = startRow;
+			this.startCol = startCol;
+		}
+	
+		@Override
+		public int getStartRow() { return startRow; }
+		@Override
+		public int getStartCol() { return startCol; }
+		@Override
+		public int getDestRow() { return destRow; }
+		@Override
+		public int getDestCol() { return destCol; }
+	
+		@Override
+		public void applyTransform(GL2 gl, float startX, float startZ, float endX, float endZ) {
+			float t = getProgress();
+			
+			// Interpolate position
+			float x = startX + (endX - startX) * t;
+			float z = startZ + (endZ - startZ) * t;
+
+			// Compute direction angle in degrees
+			float dx = endX - startX;
+			float dz = endZ - startZ;
+			float angle = (float) Math.toDegrees(Math.atan2(dx, dz)); // rotate around axis perpendicular to movement
+
+			// Lean back then return upright as t goes from 0 → 1
+			float leanAmount = (float)(Math.sin(Math.PI * t) * 15.0f); // up to 15 degrees lean
+
+			// Transform
+			gl.glTranslatef(x, 0.0f, z);                   // Move piece
+			gl.glRotatef(angle, 0.0f, 1.0f, 0.0f);          // Rotate to face direction of movement
+			gl.glRotatef(-leanAmount, 1.0f, 0.0f, 0.0f);    // Lean forward/backward around X-axis
 		}
 	}
 }

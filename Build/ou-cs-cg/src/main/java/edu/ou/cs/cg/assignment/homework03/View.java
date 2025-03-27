@@ -82,6 +82,9 @@ public final class View
 	private final KeyHandler			keyHandler;
 	private final MouseHandler			mouseHandler;
 
+	// board information
+	private float[] boardPositions; 
+	private final float tileSize; //width and length of each tile
 	//**********************************************************************
 	// Constructors and Finalizer
 	//**********************************************************************
@@ -96,6 +99,13 @@ public final class View
 
 		// Initialize model (scene data and parameter manager)
 		model = new Model(this);
+		tileSize = 2.2f;
+		
+		//Use as the x and z cords for each of the postions 0 through 7. 0 by 0 is the top left position.
+		boardPositions = new float[]{
+			tileSize / 2, 3 * tileSize / 2, 5 * tileSize / 2, 7 * tileSize / 2,
+			9 * tileSize / 2, 11 * tileSize / 2, 13 * tileSize / 2, 15 * tileSize / 2
+		};
 
 		// Initialize controller (interaction handlers)
 		keyHandler = new KeyHandler(this, model);
@@ -179,6 +189,7 @@ public final class View
 	private void	update(GLAutoDrawable drawable)
 	{
 		k++;									// Advance animation counter
+		model.updateAnimations();
 	}
 
 	private void	render(GLAutoDrawable drawable)
@@ -298,15 +309,11 @@ public final class View
 	private void drawChessSet(GL2 gl) {
 		
 		// Draw board in middle of space. Keep still.
-		float tileSize = 2.2f; //width and length of each tile
 		//createBoardLighting(gl); //NOT READY
 		drawBoardBase(gl, tileSize);
 		drawBoardTiles(gl, tileSize);
-		drawCapturedPieces(gl, tileSize, model.getCaptures());
-		
-		//Use as the x and z cords for each of the postions 0 through 7. 0 by 0 is the top left position.
-		float[] boardPositions = {tileSize/2, 3*tileSize/2, 5*tileSize/2, 7*tileSize/2, 9*tileSize/2, 11*tileSize/2, 13*tileSize/2, 15*tileSize/2};
-		
+		drawCapturedPieces(gl, tileSize);
+
 		//Draw all the pieces in their starting positions
 		for(int i = 0; i < 8; i++){
 			for(int j = 0; j < 8; j++){
@@ -318,10 +325,35 @@ public final class View
 				}
 			}
 		}
-	
+
+		// animate last
+		drawAnimatingPieces(gl, tileSize);
+		
 		return;
 	}
 
+	private void drawAnimatingPieces(GL2 gl, float tileSize){
+		for (Model.Piece piece : model.getAnimatingPieces()) {
+			gl.glPushMatrix();
+	
+			// compute start and end positions
+			Model.Animation anim = piece.getAnimation();
+			System.out.println(anim.getStartRow()+" "+anim.getStartCol()+" "+anim.getDestRow()+" "+ anim.getDestCol());
+			float startX = boardPositions[anim.getStartRow()];
+			float startZ = boardPositions[anim.getStartCol()];
+			float endX   = boardPositions[anim.getDestRow()];
+			float endZ   = boardPositions[anim.getDestCol()];
+	
+			// apply animation transform (translates to correct spot)
+			anim.applyTransform(gl, startX, startZ, endX, endZ);
+	
+			// draw at origin (since transform moved us)
+			drawPiece(gl, 0, 0, 0, piece);
+	
+			gl.glPopMatrix();
+		}
+	}
+	
 	private void drawPiece(GL2 gl, float x, float y, float z, Model.Piece piece){
 		switch(piece.type)
 		{
@@ -341,18 +373,13 @@ public final class View
 		}
 	}
 
-	private void drawCapturedPieces(GL2 gl, float tileSize, ArrayList<Model.Piece> captured) {
-		float[] boardPositions = {
-			tileSize / 2, 3 * tileSize / 2, 5 * tileSize / 2, 7 * tileSize / 2,
-			9 * tileSize / 2, 11 * tileSize / 2, 13 * tileSize / 2, 15 * tileSize / 2
-		};
-	
+	private void drawCapturedPieces(GL2 gl, float tileSize) {
 		float y = 0.0f; // Exact same height as the board — adjust if needed
 	
 		ArrayList<Model.Piece> whiteCaptured = new ArrayList<>();
 		ArrayList<Model.Piece> blackCaptured = new ArrayList<>();
 	
-		for (Model.Piece piece : captured) {
+		for (Model.Piece piece : model.getCaptures()) {
 			if (piece.isWhite()) {
 				whiteCaptured.add(piece);
 			} else {
