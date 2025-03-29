@@ -630,7 +630,7 @@ public final class Model
 			float movementAngle = (float) Math.toDegrees(Math.atan2(dx, dz)); // rotate around Y to face movement
 
 			// Somersault angle (full forward flips)
-			float somersaultAngle = 360.0f * t * 2f; // 2 full flips
+			float somersaultAngle = 360.0f * t * 10f; // 2 full flips
 
 			// Apply transforms
 			gl.glTranslatef(x, 2.0f, z);                    // Move to position

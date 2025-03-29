@@ -338,7 +338,6 @@ public final class View
 	
 			// compute start and end positions
 			Model.Animation anim = piece.getAnimation();
-			System.out.println(anim.getStartRow()+" "+anim.getStartCol()+" "+anim.getDestRow()+" "+ anim.getDestCol());
 			float startX = boardPositions[anim.getStartRow()];
 			float startZ = boardPositions[anim.getStartCol()];
 			float endX   = boardPositions[anim.getDestRow()];
@@ -361,20 +360,25 @@ public final class View
 			drawPawn(gl, x, y, z, piece);
 			break;	
 			case KNIGHT:
+			drawKnight(gl, x, y, z, piece);
 			break;
 			case ROOK:
+			drawRook(gl, x, y, z, piece);
 			break;
 			case BISHOP:
+			drawBishop(gl, x, y, z, piece);
 			break;
 			case QUEEN:
+			drawQueen(gl, x, y, z, piece);
 			break;
 			case KING:
+			drawKing(gl, x, y, z, piece);
 			break;
 		}
 	}
 
 	private void drawCapturedPieces(GL2 gl, float tileSize) {
-		float y = 0.0f; // Exact same height as the board — adjust if needed
+		float y = 0.0f; // Exact same height as the board
 	
 		ArrayList<Model.Piece> whiteCaptured = new ArrayList<>();
 		ArrayList<Model.Piece> blackCaptured = new ArrayList<>();
@@ -558,71 +562,97 @@ public final class View
 	private void drawBishop(GL2 gl, float x, float y, float z, Model.Piece piece) {
 
 		gl.glPushMatrix();
-    	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
+		gl.glTranslated(x, y, z);  // Move the bishop's base to (x, y, z)
 
-		setPieceColor(gl, piece);//set the color and own light source
-
-		// MAKE THE PIECE
+		setPieceColor(gl, piece); // Set color and lighting
 
 		gl.glPopMatrix();
-		gl.glDisable(GL2.GL_LIGHTING); //lighting only affects pieces for now.
-		return;
+		gl.glDisable(GL2.GL_LIGHTING);  //lighting only affects pieces for now.
+	
 	}
 
 	private void drawKnight(GL2 gl, float x, float y, float z, Model.Piece piece) {
 
 		gl.glPushMatrix();
-    	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
-
-		setPieceColor(gl, piece);//set the color and own light source
-
-		// MAKE THE PIECE
-
+		gl.glTranslated(x, y, z);  // Move base to (x, y, z)
+	
+		setPieceColor(gl, piece); // Set color and lighting
+	
 		gl.glPopMatrix();
-		gl.glDisable(GL2.GL_LIGHTING); //lighting only affects pieces for now.
-		return;
+		gl.glDisable(GL2.GL_LIGHTING);
 	}
 
 	private void drawRook(GL2 gl, float x, float y, float z, Model.Piece piece) {
-
 		gl.glPushMatrix();
-    	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
+		gl.glTranslated(x, y, z);
+	
+		setPieceColor(gl, piece);
+		
+		float baseHeight = 0.2f;
+		float baseWidth = 0.75f;
 
-		setPieceColor(gl, piece);//set the color and own light source
+		float baseCurveHeight = baseHeight * 2;
+		float baseCurveWidth = baseWidth;
 
-		// MAKE THE PIECE
+
+		
+	
+		// base
+		drawDisk(gl, baseHeight, baseWidth, baseWidth, 32, 8);
+		// rounded bottom above base
+		gl.glTranslated(0, baseCurveHeight, 0);
+		drawCappedSphericalBandByHeight(gl, baseWidth+(baseWidth*.05f), baseCurveHeight, 64, 32);  
+
+		// first curve
+		gl.glTranslated(0, -baseCurveHeight, 0);
+		float[] heights = {0.6f, 0.7f, 0.8f, 0.9f, 1.0f};
+		float[] radii   = {baseWidth, baseWidth*.9f, baseWidth*.7f, baseWidth*.6f, baseWidth*.5f};
+		drawProfiledSection(gl, heights, radii, 64);
+		gl.glTranslated(0, baseCurveHeight*2.6, 0);
+		drawCappedSphericalBandByHeight(gl, radii[radii.length-1] + (radii[radii.length-1]*.1f), baseCurveHeight/2, 64, 32); 
+		drawDisk(gl, baseHeight*5f, radii[radii.length-1]*.9f, radii[radii.length-1], 32, 8);
+		gl.glTranslated(0, baseHeight*5f, 0);
+		drawDisk(gl, baseHeight*3f, baseWidth*.8f, baseWidth*.8f, 32, 8);
+		
+		// 2. Crenellations (small blocks around the top)
+		gl.glPushMatrix();
+		gl.glTranslated(0, 0.7, 0);
+		int crenelCount = 6;
+		for (int i = 0; i < crenelCount; i++) {
+			double angle = i * 360.0 / crenelCount;
+			gl.glPushMatrix();
+			gl.glRotated(angle, 0, 1, 0);
+			gl.glTranslated(0.4, 0, 0);
+			gl.glScaled(0.2, 0.4, 0.2);
+			glut.glutSolidCube(1);
+			gl.glPopMatrix();
+		}
+		gl.glPopMatrix();
 
 		gl.glPopMatrix();
-		gl.glDisable(GL2.GL_LIGHTING); //lighting only affects pieces for now.
-		return;
+		gl.glDisable(GL2.GL_LIGHTING);
 	}
 
 	private void drawQueen(GL2 gl, float x, float y, float z, Model.Piece piece) {
-
 		gl.glPushMatrix();
-    	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
-
-		setPieceColor(gl, piece);//set the color and own light source
-
-		// MAKE THE PIECE
-
+		gl.glTranslated(x, y, z);  // Move the queen's base to (x, y, z)
+	
+		setPieceColor(gl, piece); // Set color and lighting
+	
+	
 		gl.glPopMatrix();
-		gl.glDisable(GL2.GL_LIGHTING); //lighting only affects pieces for now.
-		return;
+		gl.glDisable(GL2.GL_LIGHTING);
 	}
 
 	private void drawKing(GL2 gl, float x, float y, float z, Model.Piece piece) {
-
 		gl.glPushMatrix();
-    	gl.glTranslated(x, y, z);  // Move the pawn's base to (x, y, z)
-
-		setPieceColor(gl, piece); //set the color and own light source
-
-		// MAKE THE PIECE
-
+		gl.glTranslated(x, y, z);  // Move the king's base to (x, y, z)
+	
+		setPieceColor(gl, piece); // Set color and lighting
+	
+	
 		gl.glPopMatrix();
-		gl.glDisable(GL2.GL_LIGHTING); //lighting only affects pieces for now.
-		return;
+		gl.glDisable(GL2.GL_LIGHTING);
 	}
 
 	// Render a simple cube for testing
@@ -772,6 +802,116 @@ public final class View
 
 		gl.glEnd();
 	}
+	
+	public void drawProfiledSection(GL2 gl, float[] heights, float[] radii, int slices) {
+		if (heights.length != radii.length || heights.length < 2) return;
+	
+		gl.glBegin(GL2.GL_QUAD_STRIP);
+		for (int i = 0; i < heights.length - 1; i++) {
+			float y0 = heights[i];       // Lower Y
+			float y1 = heights[i + 1];   // Higher Y
+			float r0 = radii[i];
+			float r1 = radii[i + 1];
+	
+			for (int j = 0; j <= slices; j++) {
+				float theta = (float)(2 * Math.PI * j / slices);
+				float cosTheta = (float)Math.cos(theta);
+				float sinTheta = (float)Math.sin(theta);
+	
+				float x0 = r0 * cosTheta;
+				float z0 = r0 * sinTheta;
+				float x1 = r1 * cosTheta;
+				float z1 = r1 * sinTheta;
+	
+				gl.glNormal3f(cosTheta, 0f, sinTheta);  // crude normal
+				gl.glVertex3f(x0, y0, z0);  // lower ring
+				gl.glVertex3f(x1, y1, z1);  // upper ring
+			}
+		}
+		gl.glEnd();
+	}
+	
+	public void drawCappedSphericalBandByHeight(GL2 gl, float radius, float height, int slices, int stacks) {
+		float halfHeight = height / 2.0f;
+	
+		// Clamp to valid sphere height
+		halfHeight = Math.min(halfHeight, radius);
+	
+		// Convert Y positions to phi angles
+		float minY = -halfHeight;
+		float maxY = halfHeight;
+		float minPhi = (float)Math.asin(minY / radius);
+		float maxPhi = (float)Math.asin(maxY / radius);
+	
+		// 1. Draw curved band
+		for (int i = 0; i < stacks; i++) {
+			float phi0 = minPhi + (maxPhi - minPhi) * i / stacks;
+			float phi1 = minPhi + (maxPhi - minPhi) * (i + 1) / stacks;
+	
+			gl.glBegin(GL2.GL_QUAD_STRIP);
+			for (int j = 0; j <= slices; j++) {
+				float theta = 2.0f * (float)Math.PI * j / slices;
+	
+				float cosTheta = (float)Math.cos(theta);
+				float sinTheta = (float)Math.sin(theta);
+	
+				float x0 = radius * (float)(Math.cos(phi0) * cosTheta);
+				float y0 = radius * (float)Math.sin(phi0);
+				float z0 = radius * (float)(Math.cos(phi0) * sinTheta);
+	
+				float x1 = radius * (float)(Math.cos(phi1) * cosTheta);
+				float y1 = radius * (float)Math.sin(phi1);
+				float z1 = radius * (float)(Math.cos(phi1) * sinTheta);
+	
+				gl.glNormal3f(x0 / radius, y0 / radius, z0 / radius);
+				gl.glVertex3f(x0, y0, z0);
+	
+				gl.glNormal3f(x1 / radius, y1 / radius, z1 / radius);
+				gl.glVertex3f(x1, y1, z1);
+			}
+			gl.glEnd();
+		}
+	
+		// 2. Bottom cap
+		float rMin = (float)Math.sqrt(radius * radius - minY * minY);
+		gl.glBegin(GL2.GL_TRIANGLE_FAN);
+		gl.glNormal3f(0f, -1f, 0f);
+		gl.glVertex3f(0f, minY, 0f);
+		for (int j = 0; j <= slices; j++) {
+			float theta = 2.0f * (float)Math.PI * j / slices;
+			float x = rMin * (float)Math.cos(theta);
+			float z = rMin * (float)Math.sin(theta);
+			gl.glVertex3f(x, minY, z);
+		}
+		gl.glEnd();
+	
+		// 3. Top cap
+		float rMax = (float)Math.sqrt(radius * radius - maxY * maxY);
+		gl.glBegin(GL2.GL_TRIANGLE_FAN);
+		gl.glNormal3f(0f, 1f, 0f);
+		gl.glVertex3f(0f, maxY, 0f);
+		for (int j = 0; j <= slices; j++) {
+			float theta = 2.0f * (float)Math.PI * j / slices;
+			float x = rMax * (float)Math.cos(theta);
+			float z = rMax * (float)Math.sin(theta);
+			gl.glVertex3f(x, maxY, z);
+		}
+		gl.glEnd();
+	}
+	
+	private void drawDisk(GL2 gl, double height, double topRadius, double bottomRadius, int slices, int stacks) {
+		gl.glPushMatrix();
+	
+		gl.glRotated(-90, height, 0, 0); // orient cylinder upright
+		glu.gluCylinder(quadric, bottomRadius, topRadius, height, slices, stacks);
+		glu.gluDisk(quadric, 0.0, bottomRadius, slices, 1); // bottom cap
+	
+		gl.glTranslated(0, 0, height); // move to top
+		glu.gluDisk(quadric, 0.0, topRadius, slices, 1); // top cap
+	
+		gl.glPopMatrix();
+	}
+
 }
 
 //******************************************************************************
