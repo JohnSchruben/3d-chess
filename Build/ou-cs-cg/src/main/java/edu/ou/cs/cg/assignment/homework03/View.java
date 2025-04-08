@@ -560,15 +560,66 @@ public final class View
 	}
 
 	private void drawBishop(GL2 gl, float x, float y, float z, Model.Piece piece) {
-
 		gl.glPushMatrix();
-		gl.glTranslated(x, y, z);  // Move the bishop's base to (x, y, z)
+		gl.glTranslated(x, y, z);
+	
+		setPieceColor(gl, piece);
+		
+		float baseHeight = 0.2f;
+		float baseWidth = 0.75f;
 
-		setPieceColor(gl, piece); // Set color and lighting
+		float baseCurveHeight = baseHeight * 2;
+		float baseCurveWidth = baseWidth;
+
+		// base
+		drawDisk(gl, baseHeight, baseWidth, baseWidth, 32, 8);
+		
+		// first curve
+		gl.glTranslated(0, baseHeight/2f, 0);
+		float[] heights = {.1f,.2f,.3f,.4f,.5f,0.6f, 0.7f, 0.8f, 0.9f, 1.0f};
+		float[] radii   = {
+			baseWidth*.9f, 
+			baseWidth*.95f,
+			baseWidth,
+			baseWidth*.95f,
+		    baseWidth*.9f,
+		    baseWidth*.7f, 
+		    baseWidth*.65f,
+			baseWidth*.6f, 
+			baseWidth*.55f,
+			baseWidth*.5f};
+		drawProfiledSection(gl, heights, radii, 64);
+		gl.glTranslated(0, baseCurveHeight*2.6, 0);
+		drawCappedSphericalBandByHeight(gl, radii[radii.length-1] + (radii[radii.length-1]*.1f), baseCurveHeight/2, 64, 32); 
+		drawDisk(gl, baseHeight*5f, radii[radii.length-1]*.9f, radii[radii.length-1], 32, 8);
+		
+		
+		// top
+		gl.glTranslated(0, baseHeight*5f, 0);
+		drawDisk(gl, baseHeight, baseWidth*.6f, baseWidth*.6f, 32, 8);
+		gl.glPushMatrix();
+		gl.glTranslated(0, baseHeight*.5f, 0);
+		baseWidth = baseWidth*.6f;
+		float[] heights2 = {.1f,.2f,.3f,.4f,.5f,0.6f, 0.7f, 0.8f, 0.9f, 1.0f};
+		float[] radii2   = {
+			baseWidth*.9f, 
+			baseWidth*.95f,
+			baseWidth,
+			baseWidth*.95f,
+		    baseWidth*.9f,
+		    baseWidth*.7f, 
+		    baseWidth*.6f,
+			baseWidth*.5f, 
+			baseWidth*.45f,
+			baseWidth*.4f};
+		drawProfiledSection(gl, heights2, radii2, 64);
+		
+		gl.glTranslated(0, 1.2f, 0);
+		glu.gluSphere(quadric, 0.2, 24, 24);
+		gl.glPopMatrix();
 
 		gl.glPopMatrix();
-		gl.glDisable(GL2.GL_LIGHTING);  //lighting only affects pieces for now.
-	
+		gl.glDisable(GL2.GL_LIGHTING);
 	}
 
 	private void drawKnight(GL2 gl, float x, float y, float z, Model.Piece piece) {
@@ -594,11 +645,9 @@ public final class View
 		float baseCurveHeight = baseHeight * 2;
 		float baseCurveWidth = baseWidth;
 
-
-		
-	
 		// base
 		drawDisk(gl, baseHeight, baseWidth, baseWidth, 32, 8);
+
 		// rounded bottom above base
 		gl.glTranslated(0, baseCurveHeight, 0);
 		drawCappedSphericalBandByHeight(gl, baseWidth+(baseWidth*.05f), baseCurveHeight, 64, 32);  
@@ -612,9 +661,11 @@ public final class View
 		drawCappedSphericalBandByHeight(gl, radii[radii.length-1] + (radii[radii.length-1]*.1f), baseCurveHeight/2, 64, 32); 
 		drawDisk(gl, baseHeight*5f, radii[radii.length-1]*.9f, radii[radii.length-1], 32, 8);
 		gl.glTranslated(0, baseHeight*5f, 0);
+
+		// top part.
 		drawDisk(gl, baseHeight*3f, baseWidth*.8f, baseWidth*.8f, 32, 8);
 		
-		// 2. Crenellations (small blocks around the top)
+		// crenellations, small blocks around the top
 		gl.glPushMatrix();
 		gl.glTranslated(0, 0.7, 0);
 		int crenelCount = 6;
