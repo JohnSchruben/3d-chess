@@ -276,7 +276,7 @@ public final class View
 	{
 		renderer.beginRendering(w, h);
 
-		// Draw all text in white
+		// Draw all text in black
 		renderer.setColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 		// Vertical position of text labels
