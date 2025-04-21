@@ -1,34 +1,3 @@
-//******************************************************************************
-// Copyright (C) 2019-2025 University of Oklahoma Board of Trustees.
-//******************************************************************************
-// Last modified: Sat Feb 22 09:58:10 2025 by Chris Weaver
-//******************************************************************************
-// Major Modification History:
-//
-// 20190227 [weaver]:	Original file.
-// 20240224 [weaver]:	Updated ViewPointUpdater to account for pixel scaling.
-// 20250222 [weaver]:	Updated homework03 for easier carryover from homework02.
-//
-//******************************************************************************
-//
-// The model manages all of the user-adjustable variables utilized in the scene.
-// (You can store non-user-adjustable scene data here too, if you want.)
-//
-// For each variable that you want to make interactive:
-//
-//   1. Add a member of the right type
-//   2. Initialize it to a reasonable default value in the constructor.
-//   3. Add a method to access a copy of the variable's current value.
-//   4. Add a method to modify the variable.
-//
-// Concurrency management is important because the JOGL and the Java AWT run on
-// different threads. The modify methods use the GLAutoDrawable.invoke() method
-// so that all changes to variables take place on the JOGL thread. Because this
-// happens at the END of GLEventListener.display(), all changes will be visible
-// to the View.update() and render() methods in the next animation cycle.
-//
-//******************************************************************************
-
 package edu.ou.cs.cg.assignment.homework03;
 
 //import java.lang.*;
@@ -43,9 +12,6 @@ import java.awt.Rectangle;
 
 /**
  * The <CODE>Model</CODE> class.
- *
- * @author  Chris Weaver
- * @version %I%, %G%
  */
 public final class Model
 {

@@ -1,0 +1,1 @@
+The application can be built just like the HW. Run Gradle installDist to build.

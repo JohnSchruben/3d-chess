@@ -1,21 +1,3 @@
-//******************************************************************************
-// Copyright (C) 2016-2025 University of Oklahoma Board of Trustees.
-//******************************************************************************
-// Last modified: Sat Feb 22 09:58:10 2025 by Chris Weaver
-//******************************************************************************
-// Major Modification History:
-//
-// 20160209 [weaver]:	Original file.
-// 20190203 [weaver]:	Updated to JOGL 2.3.2 and cleaned up.
-// 20190227 [weaver]:	Updated to use model and asynchronous event handling.
-// 20220225 [weaver]:	Added point smoothing for Hi-DPI displays.
-// 20250222 [weaver]:	Updated homework03 for easier carryover from homework02.
-//
-//******************************************************************************
-// Notes:
-//
-//******************************************************************************
-
 package edu.ou.cs.cg.assignment.homework03;
 
 //import java.lang.*;
@@ -37,9 +19,6 @@ import edu.ou.cs.cg.utilities.Utilities;
 
 /**
  * The <CODE>View</CODE> class.<P>
- *
- * @author  Chris Weaver
- * @version %I%, %G%
  */
 public final class View
 	implements GLEventListener

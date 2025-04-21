@@ -1,19 +1,3 @@
-//******************************************************************************
-// Copyright (C) 2016-2025 University of Oklahoma Board of Trustees.
-//******************************************************************************
-// Last modified: Sat Feb 22 09:58:10 2025 by Chris Weaver
-//******************************************************************************
-// Major Modification History:
-//
-// 20160225 [weaver]:	Original file.
-// 20190227 [weaver]:	Updated to use model and asynchronous event handling.
-// 20250222 [weaver]:	Updated homework03 for easier carryover from homework02.
-//
-//******************************************************************************
-// Notes:
-//
-//******************************************************************************
-
 package edu.ou.cs.cg.assignment.homework03;
 
 //import java.lang.*;
@@ -31,9 +15,6 @@ import com.jogamp.opengl.util.gl2.GLUT;
 
 /**
  * The <CODE>MouseHandler</CODE> class.<P>
- *
- * @author  Chris Weaver
- * @version %I%, %G%
  */
 public final class MouseHandler extends MouseAdapter
 {

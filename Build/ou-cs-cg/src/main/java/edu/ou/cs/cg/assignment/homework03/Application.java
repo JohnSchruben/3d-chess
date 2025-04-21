@@ -1,7 +1,7 @@
 //******************************************************************************
 // Copyright (C) 2016-2025 University of Oklahoma Board of Trustees.
 //******************************************************************************
-// Last modified: Sat Feb 22 09:58:10 2025 by Chris Weaver
+// Last modified: Mar 07 2025 by Blake Shore
 //******************************************************************************
 // Major Modification History:
 //
@@ -11,6 +11,7 @@
 // 20201215 [weaver]:	Added setIdentifyPixelScale() to canvas setup.
 // 20210209 [weaver]:	Added point smoothing for Hi-DPI displays.
 // 20250222 [weaver]:	Updated homework03 for easier carryover from homework02.
+// 20250307 [Shore]:    Changed the default name to 3D-Chess
 //
 //******************************************************************************
 // Notes:
