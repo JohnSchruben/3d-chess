@@ -31,7 +31,6 @@ import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.opengl.util.awt.TextRenderer;
 import com.jogamp.opengl.util.gl2.GLUT;
 import edu.ou.cs.cg.utilities.Utilities;
-import java.awt.Rectangle;
 
 
 //******************************************************************************
@@ -199,7 +198,7 @@ public final class View
 		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);	// Clear the buffer
 
 		drawMain(gl);							// Draw scene content
-		//drawMode(drawable);						// Draw overlaid mode text
+		drawMode(drawable);						// Draw overlaid mode text
 
 		gl.glFlush();							// Finish and display
 	}
@@ -275,22 +274,33 @@ public final class View
 
 	private void	drawMode(GLAutoDrawable drawable)
 	{
-		GL2		gl = drawable.getGL().getGL2();
-
 		renderer.beginRendering(w, h);
 
-		// Draw all text in medium gray
-		renderer.setColor(0.75f, 0.75f, 0.75f, 1.0f);
+		// Draw all text in white
+		renderer.setColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 		// Vertical position of text labels
-		int 	voff = Utilities.TEXT_SPACING;
+		int voff = Utilities.TEXT_SPACING;
 
-		// Draw text
-		String		sf = ("");
-
-		renderer.draw(sf, 2, h - voff);		// Draw text on the current line
+		String	camera = "Camera:";
+		renderer.draw(camera, 2, h - voff);	// Draw text for "Camera"
 		voff += Utilities.TEXT_SPACING;		// Move down one line
 
+		// Draw camera position controls
+		String	cameraControls = "A (left), W (forward), D (right)";
+		renderer.draw(cameraControls, 2, h - voff);
+		voff += Utilities.TEXT_SPACING;		// Move down one line
+
+		// Draw camera angle controls
+		String	highCam = "S (toggle highcam)";
+		renderer.draw(highCam, 2, h - voff);
+		voff += Utilities.TEXT_SPACING;		// Move down one line
+
+		// Draw piece controls
+		String	pieceControl = "Click tiles to select and move pieces";
+		renderer.draw(pieceControl, 2, h - voff);
+		voff += Utilities.TEXT_SPACING;		// Move down one line
+		
 		renderer.endRendering();
 	}
 
