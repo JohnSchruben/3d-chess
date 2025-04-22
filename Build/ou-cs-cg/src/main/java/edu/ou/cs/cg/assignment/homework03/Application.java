@@ -86,6 +86,7 @@ public final class Application
 			profile.getName());
 
 		GLCapabilities	capabilities = new GLCapabilities(profile);
+        capabilities.setStencilBits(8);
 		//GLCanvas		canvas = new GLCanvas(capabilities);	// Single-buffer
 		GLJPanel		canvas = new GLJPanel(capabilities);	// Double-buffer
 		JFrame			frame = new JFrame(DEFAULT_NAME);
