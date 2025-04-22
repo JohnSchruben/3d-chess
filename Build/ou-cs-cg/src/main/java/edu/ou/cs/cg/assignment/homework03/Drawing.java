@@ -107,22 +107,38 @@ public final class Drawing
 		gl.glTranslatef(0f, 3.7f, 0f);
 		gl.glScalef(1.0f, 1.0f, 1.0f);
 		drawQueenHead(gl);
+		gl.glScalef(0.7f, 0.01f, 0.7f);
+		drawCylinder(gl);
 		gl.glPopMatrix();
 	}
 	
 	public static void drawKnight(GL2 gl){
 		gl.glPushMatrix();
 		drawBase(gl);
+		gl.glTranslatef(0f, 3.7f, 0f);
+		
+		gl.glScalef(2.0f, 2.0f, 2.0f);
+		drawKnightHead(gl);
 		gl.glPopMatrix();
 	}
+	public static void drawKnightHead(GL2 gl) {
+		
+	}
+	
+	
 	public static void drawQueenHead(GL2 gl) {
 		gl.glPushMatrix();
 	
 		// crown 
 		gl.glScaled(1.0f,-1.0f,1.0f);
 		gl.glScaled(0.7f,0.3f,0.7f);
-		//gl.glTranslatef(0f, 0.1f, 0f);
 		drawHorn(gl, 0.5f);
+
+		// gl.glPushMatrix();
+		// gl.glScaled(0.7f,0.7f,0.7f);
+		// gl.glTranslatef(0f, -0.8f, 0f);
+		// drawHorn(gl, 0.5f);
+		// gl.glPopMatrix();
 
 		// horns 
 		// crenellations, small blocks around the top
@@ -136,7 +152,6 @@ public final class Drawing
 			gl.glTranslated(0.8, -1.4, 0);
 			gl.glScaled(0.2, 0.4, 0.2);
 			gl.glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
-			//gl.glTranslatef(-2.7f, 0.6f, 0.0f);
 			drawCylinder(gl);
 			gl.glPopMatrix();
 		}
