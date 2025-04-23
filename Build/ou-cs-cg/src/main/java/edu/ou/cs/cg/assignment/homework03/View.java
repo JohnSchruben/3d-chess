@@ -298,7 +298,6 @@ public final class View
 	private void drawChessSet(GL2 gl) {
 		
 		// Draw board in middle of space. Keep still.
-		//createBoardLighting(gl); //NOT READY
 		drawBoardBase(gl, tileSize);
 		drawBoardTiles(gl, tileSize);
 		drawCapturedPieces(gl, tileSize);
