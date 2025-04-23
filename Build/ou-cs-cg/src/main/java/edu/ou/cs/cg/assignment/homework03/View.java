@@ -485,25 +485,6 @@ public final class View
         }
     }
 
-	//makes a overhead light for the chess board
-	//NOT FINISHED
-	private void createBoardLighting(GL2 gl) {
-        float[] lightPosition = {8.8f, 16.0f, 8.8f, 0.0f}; // Position of the light
-        float[] lightDirection = {0.0f, -1.0f, 0.0f}; // Pointing straight down
-        float[] lightDiffuse = {2.0f, 2.0f, 2.0f, 1.0f}; // Stronger white light
-        float[] lightSpecular = {2.0f, 2.0f, 2.0f, 1.0f};
-        
-        gl.glEnable(GL2.GL_LIGHTING);
-        gl.glEnable(GL2.GL_LIGHT0);
-        
-        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, lightPosition, 0);
-        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPOT_DIRECTION, lightDirection, 0);
-        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, lightDiffuse, 0);
-        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPECULAR, lightSpecular, 0);
-        gl.glLightf(GL2.GL_LIGHT0, GL2.GL_SPOT_CUTOFF, 90.0f); // Wider spotlight angle
-        gl.glLightf(GL2.GL_LIGHT0, GL2.GL_SPOT_EXPONENT, 2.0f); // Softer falloff
-	}
-
 	private void drawPawn(GL2 gl, float x, float y, float z, Model.Piece piece) {
 
 		gl.glPushMatrix();
