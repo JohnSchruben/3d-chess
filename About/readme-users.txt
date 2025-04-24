@@ -1,0 +1,1 @@
+The application can be ran just like the HW. Run hw03 in the build/install/base/bin directory. Our project uses the hw03 Gradle script to avoid spending graphics development time on writing our own script.
