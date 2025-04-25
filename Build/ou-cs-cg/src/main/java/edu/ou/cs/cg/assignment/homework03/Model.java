@@ -104,7 +104,7 @@ public final class Model
 				}
 			  }
 		} else if(selectedPiece == clickedPiece){
-			setSelectedPiece(null);
+			clearSelection();
 		} else {
 			// Second click — try to move the selected piece
 			Point start = selectedSquare;
