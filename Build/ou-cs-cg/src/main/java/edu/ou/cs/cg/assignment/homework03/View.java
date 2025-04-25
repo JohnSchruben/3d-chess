@@ -811,7 +811,7 @@ public final class View
 
 	private void drawGhost(GL2 gl) {
 		Point hover = model.getHoverSquare();
-		Point sel   = model.getSelectedSquare();
+		Point sel   = model.getGhostStartSquare();
 		if (hover == null || sel == null) return;
 	  
 		// progress from start→end [0..1]

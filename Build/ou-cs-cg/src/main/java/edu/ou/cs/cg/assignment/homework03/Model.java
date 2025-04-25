@@ -33,6 +33,7 @@ public final class Model
 	private Point hoverSquare = null;
 	private long  hoverStartTime = 0L;
 	private static final long HOVER_DURATION = 400L;  // ms
+	private Point ghostStartSquare;
 
 	//**********************************************************************
 	// Constructors and Finalizer
@@ -153,8 +154,9 @@ public final class Model
 
 	public void setHoverSquare(Point sq) {
 		if (!Objects.equals(sq, hoverSquare)) {
-		  hoverSquare    = sq;
-		  hoverStartTime = (sq != null ? System.currentTimeMillis() : 0L);
+			ghostStartSquare = (hoverSquare == null ? selectedSquare : hoverSquare);
+		  	hoverSquare    = sq;
+		  	hoverStartTime = (sq != null ? System.currentTimeMillis() : 0L);
 		}
 	}
 
@@ -166,6 +168,10 @@ public final class Model
 		if (hoverSquare == null) return 0f;
 		long dt = System.currentTimeMillis() - hoverStartTime;
 		return Math.min(1f, dt / (float)HOVER_DURATION);
+	}
+
+	public Point getGhostStartSquare() {
+		return ghostStartSquare;
 	}
 
 	//**********************************************************************
@@ -252,6 +258,7 @@ public final class Model
 		selectedSquare = null;
 		legalMoves.clear();
 		hoverSquare = null;
+		ghostStartSquare   = null;
  		hoverStartTime = 0L;
 	}
 
