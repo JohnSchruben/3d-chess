@@ -1,1 +1,1 @@
-The application can be built just like the HW. Run Gradle installDist to build.
+The application can be built just like the HW. Run Gradle installDist in the ou-cs-cg directory to build.
