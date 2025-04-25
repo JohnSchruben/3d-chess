@@ -29,6 +29,11 @@ public final class Model
 	private Tile[][] tiles;					// used to hit test
 	private Piece selectedPiece;
 	private Point selectedSquare = null;     // the square where the selected piece is
+	private List<Point> legalMoves = new ArrayList<>();
+	private Point hoverSquare = null;
+	private long  hoverStartTime = 0L;
+	private static final long HOVER_DURATION = 400L;  // ms
+	private Point ghostStartSquare;
 
 	//**********************************************************************
 	// Constructors and Finalizer
@@ -64,7 +69,7 @@ public final class Model
 
 	// gets called on the view on every render
 	public void setTile(int row, int col, Rectangle bounds) {
-		tiles[row][col] = new Tile(row, col, bounds);
+		tiles[row][col] = new Tile(col, row, bounds);
 	}
 	
 	public void selectSquare(Point p)
@@ -86,12 +91,20 @@ public final class Model
 		if (selectedPiece == null) {
 			// First click — try to select a piece
 			if (clickedPiece != null) {
-				selectedSquare = new Point(row, col);
-				setSelectedPiece(clickedPiece);
-				System.out.println("Piece selected: " + selectedPiece);
-			}
+				// only let current player pick their own pieces
+				if (clickedPiece.isWhite() == game.isWhiteTurn()) {
+				  selectedSquare = new Point(row, col);
+				  setSelectedPiece(clickedPiece);
+				  System.out.println("Piece selected: " + selectedPiece);
+				  legalMoves = game.generateLegalMoves(row, col);
+				}
+				else {
+				  System.out.println((game.isWhiteTurn() ? "White" : "Black") + " to move.  You clicked the opponent’s piece.");
+				  clearSelection();
+				}
+			  }
 		} else if(selectedPiece == clickedPiece){
-			setSelectedPiece(null);
+			clearSelection();
 		} else {
 			// Second click — try to move the selected piece
 			Point start = selectedSquare;
@@ -128,6 +141,37 @@ public final class Model
 
 	public boolean getIsHighCam() {
 		return isHighCam;
+	}
+
+	  /** Let the view (and selectSquare) know whose turn it is */
+	public boolean isWhiteTurn() {
+		return game.isWhiteTurn();
+	}
+
+	public Point getSelectedSquare() {
+		return selectedSquare;
+	}
+
+	public void setHoverSquare(Point sq) {
+		if (!Objects.equals(sq, hoverSquare)) {
+			ghostStartSquare = (hoverSquare == null ? selectedSquare : hoverSquare);
+		  	hoverSquare    = sq;
+		  	hoverStartTime = (sq != null ? System.currentTimeMillis() : 0L);
+		}
+	}
+
+	public Point getHoverSquare() {
+		return hoverSquare;
+	}
+
+	public float getHoverProgress() {
+		if (hoverSquare == null) return 0f;
+		long dt = System.currentTimeMillis() - hoverStartTime;
+		return Math.min(1f, dt / (float)HOVER_DURATION);
+	}
+
+	public Point getGhostStartSquare() {
+		return ghostStartSquare;
 	}
 
 	//**********************************************************************
@@ -195,6 +239,15 @@ public final class Model
 		});;
 	}
 
+	/** allow View to ask which squares to highlight */
+	public List<Point> getLegalMoves() {
+		return legalMoves;
+	}
+
+	public Piece getSelectedPiece() {
+		return selectedPiece;
+	}
+
 	//**********************************************************************
 	// private methods
 	//**********************************************************************
@@ -203,6 +256,10 @@ public final class Model
 	private void clearSelection() {
 		setSelectedPiece(null);
 		selectedSquare = null;
+		legalMoves.clear();
+		hoverSquare = null;
+		ghostStartSquare   = null;
+ 		hoverStartTime = 0L;
 	}
 
 	// sets and selects piece
@@ -376,6 +433,8 @@ public final class Model
 
 		protected PieceType type;       
 		protected boolean isSelected;
+		protected boolean isGhost;
+
 		public Animation getAnimation() {
 			return animation;
 		}
@@ -403,6 +462,12 @@ public final class Model
 		}
 		public boolean getIsSelected() {
 			return isSelected;
+		}
+		public void setIsGhost(boolean value) {
+			isGhost = value;
+		}
+		public boolean getIsGhost() {
+			return isGhost;
 		}
 		public boolean isWhite() {
 			return isWhite;
@@ -447,6 +512,8 @@ public final class Model
 	public class ChessGame {
 		private Board board;
 
+		private boolean whiteTurn = true;
+
 		public ChessGame() {
 			board = new Board();
 		}
@@ -455,15 +522,138 @@ public final class Model
 			return board;
 		}
 
+		private void toggleTurn() 
+		{ 
+			whiteTurn = !whiteTurn; 
+		}
+
+		/** true if it's White's turn, false if Black's turn */
+		public boolean isWhiteTurn() {
+			return whiteTurn;
+		}
+  
 		public boolean makeMove(Move move) {
 
 			if(move.pieceMoved == null){
 				return false;
 			}
+			if (move.pieceMoved.isWhite() != whiteTurn) {
+				return false;             // not your piece
+			}
+    		if (!isValidMove(move)) {
+				return false;             // illegal pattern
+			}
 
 			System.out.println("move.pieceMoved " + move.pieceMoved);
 			board.setPiece(move, move.pieceMoved);
+			toggleTurn();
 			return true;
+		}
+
+		private boolean isValidMove(Move move) {
+			switch (move.pieceMoved.type) {
+			  case PAWN:   return validatePawn(move);
+			  case KNIGHT: return validateKnight(move);
+			  case BISHOP: return validateSliding(move, /*diags=*/true, /*straights=*/false);
+			  case ROOK:   return validateSliding(move, /*diags=*/false, /*straights=*/true);
+			  case QUEEN:  return validateSliding(move, /*diags=*/true, /*straights=*/true);
+			  case KING:   return validateKing(move);
+			  default:     return false;
+			}
+		}
+		
+		/** Return all (row,col) this piece could legally move to from (r,c). */
+		public List<Point> generateLegalMoves(int r, int c) {
+			Piece p = board.getPiece(r, c);
+			List<Point> moves = new ArrayList<>();
+			if (p == null || p.isWhite() != whiteTurn) return moves;
+		
+			// scan every square
+			for (int rr = 0; rr < 8; rr++) {
+			for (int cc = 0; cc < 8; cc++) {
+				Move m = new Move(r, c, rr, cc, p);
+				if (isValidMove(m)) {
+				moves.add(new Point(rr, cc));
+				}
+			}
+			}
+			return moves;
+		}
+
+		private boolean validatePawn(Move m) {
+			int dr = m.endRow - m.startRow;
+			int dc = m.endCol - m.startCol;
+			Piece target = board.getPiece(m.endRow, m.endCol);
+		  
+			// 1) Single step forward
+			boolean forward = (m.pieceMoved.isWhite() ? dr == -1 : dr == 1)
+							  && dc == 0
+							  && target == null;
+		  
+			// 2) Double step on first move
+			boolean doubleForward = false;
+			if (dc == 0) {
+			  // White pawns start on row 6 and move to row 4 (dr = -2)
+			  if (m.pieceMoved.isWhite() && m.startRow == 6 && dr == -2) {
+				// both intermediate (row 5) and landing squares must be empty
+				if (board.getPiece(5, m.startCol) == null && target == null) {
+				  doubleForward = true;
+				}
+			  }
+			  // Black pawns start on row 1 and move to row 3 (dr = +2)
+			  else if (!m.pieceMoved.isWhite() && m.startRow == 1 && dr == 2) {
+				if (board.getPiece(2, m.startCol) == null && target == null) {
+				  doubleForward = true;
+				}
+			  }
+			}
+		  
+			// 3) Standard diagonal capture
+			boolean capture = Math.abs(dc) == 1
+							  && (m.pieceMoved.isWhite() ? dr == -1 : dr == 1)
+							  && target != null
+							  && target.isWhite() != m.pieceMoved.isWhite();
+		  
+			return forward || doubleForward || capture;
+		  }		  
+		  
+		  private boolean validateKnight(Move m) {
+			int dr = Math.abs(m.endRow - m.startRow);
+			int dc = Math.abs(m.endCol - m.startCol);
+			Piece target = board.getPiece(m.endRow, m.endCol);
+			return ((dr == 2 && dc == 1) || (dr == 1 && dc == 2))
+				   && (target == null || target.isWhite() != m.pieceMoved.isWhite());
+		}
+		  
+		  private boolean validateKing(Move m) {
+			int dr = Math.abs(m.endRow - m.startRow);
+			int dc = Math.abs(m.endCol - m.startCol);
+			Piece target = board.getPiece(m.endRow, m.endCol);
+			return dr <= 1 && dc <= 1
+				   && (target == null || target.isWhite() != m.pieceMoved.isWhite());
+		}
+		  
+		  private boolean validateSliding(Move m, boolean diags, boolean straights) {
+			int dr = m.endRow - m.startRow, dc = m.endCol - m.startCol;
+			int stepR = Integer.signum(dr), stepC = Integer.signum(dc);
+		  
+			// direction check
+			if (dr == 0 && dc == 0) return false;
+			if (!straights && (dr == 0 || dc == 0)) return false;
+			if (!diags && Math.abs(dr) == Math.abs(dc) && dr != 0) return false;
+			if (dr != 0 && dc != 0 && Math.abs(dr) != Math.abs(dc)) return false;
+		  
+			// path must be clear
+			int r = m.startRow + stepR, c = m.startCol + stepC;
+			while (r != m.endRow || c != m.endCol) {
+			  if (board.getPiece(r, c) != null) return false;
+			  r += stepR;
+			  c += stepC;
+			}
+		  
+			// destination must be empty or enemy
+			Piece target = board.getPiece(m.endRow, m.endCol);
+			return target == null || target.isWhite() != m.pieceMoved.isWhite();
 		}
 	}
 
@@ -506,7 +696,7 @@ public final class Model
 			return bounds.contains(p);
 		}
 	}
-
+  
 	public abstract class Animation {
 		protected int counter = 0;
 		protected int duration;
