@@ -3,6 +3,8 @@ package edu.ou.cs.cg.assignment.homework03;
 //import java.lang.*;
 import java.awt.*;
 import java.awt.event.*;
+
+import edu.ou.cs.cg.assignment.homework03.Model.Tile;
 import edu.ou.cs.cg.utilities.Utilities;
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.GLJPanel;
@@ -79,6 +81,13 @@ public final class MouseHandler extends MouseAdapter
 
 	public void		mouseMoved(MouseEvent e)
 	{
+		// see which tile is under the cursor
+		Tile t = model.getTileAt(e.getPoint());
+		Point sq = (t != null && model.getLegalMoves().contains(new Point(t.row, t.col)))
+					? new Point(t.row, t.col)
+					: null;
+		// notify model
+		model.setHoverSquare(sq);
 	}
 
 	//**********************************************************************

@@ -12,6 +12,8 @@ import com.jogamp.opengl.glu.*;
 import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.opengl.util.awt.TextRenderer;
 import com.jogamp.opengl.util.gl2.GLUT;
+
+import edu.ou.cs.cg.assignment.homework03.Model.Piece;
 import edu.ou.cs.cg.utilities.Utilities;
 
 
@@ -279,6 +281,11 @@ public final class View
 		String	pieceControl = "Click tiles to select and move pieces";
 		renderer.draw(pieceControl, 2, h - voff);
 		voff += Utilities.TEXT_SPACING;		// Move down one line
+
+		// Draw current turn
+		String turnMsg = model.isWhiteTurn() ? "White's turn" : "Black's turn";
+		renderer.draw("Turn: " + turnMsg, 2, h - voff);
+		voff += Utilities.TEXT_SPACING;
 		
 		renderer.endRendering();
 	}
@@ -300,19 +307,21 @@ public final class View
 		// Draw board in middle of space. Keep still.
 		drawBoardBase(gl, tileSize);
 		drawBoardTiles(gl, tileSize);
+		drawHighlights(gl, tileSize);
+		drawGhost(gl);
 		drawCapturedPieces(gl, tileSize);
 
 		//Draw all the pieces in their starting positions
-		for(int i = 0; i < 8; i++){
-			for(int j = 0; j < 8; j++){
-
-				// Draw all the pieces
-				Model.Piece piece = model.getPiece(i, j);
-				if (piece != null){
-					drawPiece(gl, boardPositions[i], 0, boardPositions[j], piece);
-				}
+		for (int row = 0; row < 8; row++) {
+			for (int col = 0; col < 8; col++) {
+			  Model.Piece piece = model.getPiece(row, col);
+			  if (piece != null) {
+				float x = boardPositions[col];
+				float z = boardPositions[row];
+				drawPiece(gl, x, 0, z, piece);
+			  }
 			}
-		}
+		  }		  
 
 		// animate last
 		drawAnimatingPieces(gl, tileSize);
@@ -323,13 +332,15 @@ public final class View
 	private void drawAnimatingPieces(GL2 gl, float tileSize){
 		for (Model.Piece piece : model.getAnimatingPieces()) {
 			gl.glPushMatrix();
+
+			Model.Animation anim = piece.getAnimation();
 	
 			// compute start and end positions
-			Model.Animation anim = piece.getAnimation();
-			float startX = boardPositions[anim.getStartRow()];
-			float startZ = boardPositions[anim.getStartCol()];
-			float endX   = boardPositions[anim.getDestRow()];
-			float endZ   = boardPositions[anim.getDestCol()];
+			float startX = boardPositions[anim.getStartCol()];
+			float startZ = boardPositions[anim.getStartRow()];
+			float endX   = boardPositions[anim.getDestCol()];
+			float endZ   = boardPositions[anim.getDestRow()];
+
 	
 			// apply animation transform (translates to correct spot)
 			anim.applyTransform(gl, startX, startZ, endX, endZ);
@@ -483,6 +494,50 @@ public final class View
             }
         }
     }
+
+	private void drawHighlights(GL2 gl, float tileSize) {
+		// save & disable lighting/depth/write so quads truly overlay
+		gl.glPushAttrib(GL2.GL_ENABLE_BIT | GL2.GL_DEPTH_BUFFER_BIT | GL2.GL_COLOR_BUFFER_BIT);
+		gl.glDisable(GL2.GL_LIGHTING);
+		gl.glDisable(GL2.GL_DEPTH_TEST);
+		gl.glDepthMask(false);
+	  
+		// blending for translucency
+		gl.glEnable(GL2.GL_BLEND);
+		gl.glBlendFunc(GL2.GL_SRC_ALPHA, GL2.GL_ONE_MINUS_SRC_ALPHA);
+	  
+		// inset amount (20% margin on each side)
+		float inset = tileSize * 0.015f;
+		float size  = tileSize - 2 * inset;
+  
+		// draw one inset quad per legal move square
+		for (Point sq : model.getLegalMoves()) {
+		  int row = sq.x, col = sq.y;
+		  // pick green for quiet moves, red for captures
+			Model.Piece target = model.getPiece(row, col);
+			if (target != null) {
+				// attack-move highlight: pale red
+				gl.glColor4f(1.0f, 0.6f, 0.6f, 0.7f);
+			}
+			else {
+				// regular move highlight: pale green
+				gl.glColor4f(0.6f, 1.0f, 0.6f, 0.7f);
+			}
+		  // center based coordinates, subtract half a tile, then add inset
+		  float x0 = boardPositions[col] - tileSize/2 + inset;
+		  float z0 = boardPositions[row] - tileSize/2 + inset;
+	  
+		  gl.glBegin(GL2.GL_QUADS);
+			gl.glVertex3f(x0,         0.01f, z0);
+			gl.glVertex3f(x0 + size,  0.01f, z0);
+			gl.glVertex3f(x0 + size,  0.01f, z0 + size);
+			gl.glVertex3f(x0,         0.01f, z0 + size);
+		  gl.glEnd();
+		}
+	  
+		// restore everything
+		gl.glPopAttrib();
+	  }
 
 	private void drawPawn(GL2 gl, float x, float y, float z, Model.Piece piece) {
 
@@ -753,6 +808,80 @@ public final class View
 		gl.glPopMatrix();
 		gl.glDisable(GL2.GL_LIGHTING);
 	}
+
+	private void drawGhost(GL2 gl) {
+		Point hover = model.getHoverSquare();
+		Point sel   = model.getSelectedSquare();
+		if (hover == null || sel == null) return;
+	  
+		// progress from start→end [0..1]
+		float t = model.getHoverProgress();
+	  
+		// rows=x,cols=y
+		int sr = sel.x, sc = sel.y;
+		int er = hover.x, ec = hover.y;
+	  
+		// world coords of tile centers
+		float sx = boardPositions[sc], sz = boardPositions[sr];
+		float ex = boardPositions[ec], ez = boardPositions[er];
+	  
+		// interpolate
+		float ix = sx + (ex - sx) * t;
+		float iz = sz + (ez - sz) * t;
+	  
+		// overlay state
+		gl.glPushAttrib(GL2.GL_ENABLE_BIT | GL2.GL_DEPTH_BUFFER_BIT | GL2.GL_COLOR_BUFFER_BIT);
+		gl.glDisable(GL2.GL_DEPTH_TEST);
+		gl.glEnable(GL2.GL_BLEND);
+		gl.glBlendFunc(GL2.GL_SRC_ALPHA, GL2.GL_ONE_MINUS_SRC_ALPHA);
+		gl.glDisable(GL2.GL_LIGHTING);
+	  
+		// pick ghost color based on side
+		Piece ghost = model.getSelectedPiece();
+		boolean wasSelected = ghost.getIsSelected();
+		ghost.setIsSelected(false);
+		if (ghost.isWhite()) {
+			gl.glColor4f(1f, 1f, 1f, 0.5f);   // white ghost
+		} else {
+			gl.glColor4f(0f, 0f, 0f, 0.5f);   // black ghost
+		}
+	  
+		// draw at (ix, iz)
+		gl.glPushMatrix();
+		gl.glTranslated(ix, 0.01f, iz);
+
+		switch (ghost.type) {
+			case PAWN:
+			  // reuse your drawPawn but disable lighting/materials:
+			  gl.glDisable(GL2.GL_LIGHTING);
+			  drawPawn(gl, 0, 0, 0, ghost);
+			  break;
+			case KNIGHT:
+			  gl.glDisable(GL2.GL_LIGHTING);
+			  drawKnight(gl, 0, 0, 0, ghost);
+			  break;
+			case BISHOP:
+			  gl.glDisable(GL2.GL_LIGHTING);
+			  drawBishop(gl, 0, 0, 0, ghost);
+			  break;
+			case ROOK:
+			  gl.glDisable(GL2.GL_LIGHTING);
+			  drawRook(gl, 0, 0, 0, ghost);
+			  break;
+			case QUEEN:
+			  gl.glDisable(GL2.GL_LIGHTING);
+			  drawQueen(gl, 0, 0, 0, ghost);
+			  break;
+			case KING:
+			  gl.glDisable(GL2.GL_LIGHTING);
+			  drawKing(gl, 0, 0, 0, ghost);
+			  break;
+		}
+		ghost.setIsSelected(wasSelected);
+		gl.glPopMatrix();
+	  
+		gl.glPopAttrib();
+	}	  
 }
 
 //******************************************************************************
