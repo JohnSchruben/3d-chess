@@ -433,6 +433,8 @@ public final class Model
 
 		protected PieceType type;       
 		protected boolean isSelected;
+		protected boolean isGhost;
+
 		public Animation getAnimation() {
 			return animation;
 		}
@@ -460,6 +462,12 @@ public final class Model
 		}
 		public boolean getIsSelected() {
 			return isSelected;
+		}
+		public void setIsGhost(boolean value) {
+			isGhost = value;
+		}
+		public boolean getIsGhost() {
+			return isGhost;
 		}
 		public boolean isWhite() {
 			return isWhite;

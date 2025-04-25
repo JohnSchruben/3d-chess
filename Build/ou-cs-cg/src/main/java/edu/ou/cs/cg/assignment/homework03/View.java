@@ -684,9 +684,13 @@ public final class View
 		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPECULAR, lightSpecular, 0);
 
 		// Enable material shading  
-		float[] materialDiffuse = {1.0f, 1.0f, 1.0f, 1.0f};  // Pawn color (white)
+		float alpha = 1.0f;
+		if (piece.getIsGhost())
+			alpha = 0.5f; //Ghost transparency
+
+		float[] materialDiffuse = {1.0f, 1.0f, 1.0f, alpha};  // Pawn color (white)
 		if (!piece.isWhite){
-			materialDiffuse = new float[]{0.0f, 0.0f, 0.0f, 1.0f}; //Pawn color (black)
+			materialDiffuse = new float[]{0.0f, 0.0f, 0.0f, alpha}; //Pawn color (black)
 		}
 
 		if (piece.isSelected){
@@ -838,13 +842,9 @@ public final class View
 	  
 		// pick ghost color based on side
 		Piece ghost = model.getSelectedPiece();
+		ghost.setIsGhost(true);
 		boolean wasSelected = ghost.getIsSelected();
 		ghost.setIsSelected(false);
-		if (ghost.isWhite()) {
-			gl.glColor4f(1f, 1f, 1f, 0.5f);   // white ghost
-		} else {
-			gl.glColor4f(0f, 0f, 0f, 0.5f);   // black ghost
-		}
 	  
 		// draw at (ix, iz)
 		gl.glPushMatrix();
@@ -853,33 +853,28 @@ public final class View
 		switch (ghost.type) {
 			case PAWN:
 			  // reuse your drawPawn but disable lighting/materials:
-			  gl.glDisable(GL2.GL_LIGHTING);
 			  drawPawn(gl, 0, 0, 0, ghost);
 			  break;
 			case KNIGHT:
-			  gl.glDisable(GL2.GL_LIGHTING);
 			  drawKnight(gl, 0, 0, 0, ghost);
 			  break;
 			case BISHOP:
-			  gl.glDisable(GL2.GL_LIGHTING);
 			  drawBishop(gl, 0, 0, 0, ghost);
 			  break;
 			case ROOK:
-			  gl.glDisable(GL2.GL_LIGHTING);
 			  drawRook(gl, 0, 0, 0, ghost);
 			  break;
 			case QUEEN:
-			  gl.glDisable(GL2.GL_LIGHTING);
 			  drawQueen(gl, 0, 0, 0, ghost);
 			  break;
 			case KING:
-			  gl.glDisable(GL2.GL_LIGHTING);
 			  drawKing(gl, 0, 0, 0, ghost);
 			  break;
 		}
 		ghost.setIsSelected(wasSelected);
+		ghost.setIsGhost(false);
 		gl.glPopMatrix();
-	  
+		
 		gl.glPopAttrib();
 	}	  
 }
