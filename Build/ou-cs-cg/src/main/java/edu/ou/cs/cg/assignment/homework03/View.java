@@ -6,6 +6,8 @@ import java.awt.geom.Point2D;
 import java.nio.channels.Pipe;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.List;
+
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.GLJPanel;
 import com.jogamp.opengl.glu.*;
@@ -64,7 +66,21 @@ public final class View
 
 	// board information
 	private float[] boardPositions; 
-	private final float tileSize; //width and length of each tile
+	private final float tileSize; //width and length of each tile\
+
+	private final List<ImpactGhost> impactGhosts = new ArrayList<>();
+	private boolean impactTriggered = false;
+
+	private static class ImpactGhost {
+		Model.PieceType type;
+		boolean isWhite;
+		float x, y, z;    // position
+		float vx, vy, vz; // velocity
+		float yaw, pitch;    // orientation
+    	float angVel;        // degrees per second
+		long  spawnTime;
+	}
+
 	//**********************************************************************
 	// Constructors and Finalizer
 	//**********************************************************************
@@ -170,6 +186,19 @@ public final class View
 	{
 		k++;									// Advance animation counter
 		model.updateAnimations();
+
+		// Update physics for each ImpactGhost
+		long now = System.currentTimeMillis();
+		Iterator<ImpactGhost> it = impactGhosts.iterator();
+		while (it.hasNext()) {
+			ImpactGhost ig = it.next();
+			float dt = (now - ig.spawnTime) / 1000f;
+			ig.x += ig.vx * dt;
+			ig.y += ig.vy * dt - 4.9f * dt * dt;  // gravity
+			ig.z += ig.vz * dt;
+			ig.yaw += ig.angVel * dt;
+			if (ig.y < 0f) it.remove();           // remove once it falls below board
+		}
 	}
 
 	private void	render(GLAutoDrawable drawable)
@@ -309,6 +338,29 @@ public final class View
 		drawBoardTiles(gl, tileSize);
 		drawHighlights(gl, tileSize);
 		drawGhost(gl);
+		// Render knocked-off ghosts
+		gl.glDisable(GL2.GL_LIGHTING);
+		for (ImpactGhost ig : impactGhosts) {
+			gl.glPushMatrix();
+			gl.glColor4f(
+				ig.isWhite ? 1f : 0f,
+				ig.isWhite ? 1f : 0f,
+				ig.isWhite ? 1f : 0f,
+				0.5f
+			);
+			gl.glTranslatef(ig.x, ig.y, ig.z);
+			gl.glRotatef(ig.yaw,   0f, 1f, 0f);
+			gl.glRotatef(ig.pitch, 1f, 0f, 0f);
+			switch (ig.type) {
+				case PAWN:   drawPawn   (gl, 0,0,0, dummyPawn  (ig.isWhite)); break;
+				case KNIGHT: drawKnight (gl, 0,0,0, dummyKnight(ig.isWhite)); break;
+				case BISHOP: drawBishop (gl, 0,0,0, dummyBishop(ig.isWhite)); break;
+				case ROOK:   drawRook   (gl, 0,0,0, dummyRook  (ig.isWhite)); break;
+				case QUEEN:  drawQueen  (gl, 0,0,0, dummyQueen (ig.isWhite)); break;
+				case KING:   drawKing   (gl, 0,0,0, dummyKing  (ig.isWhite)); break;
+			}
+			gl.glPopMatrix();
+		}
 		drawCapturedPieces(gl, tileSize);
 
 		//Draw all the pieces in their starting positions
@@ -832,6 +884,15 @@ public final class View
 		// interpolate
 		float ix = sx + (ex - sx) * t;
 		float iz = sz + (ez - sz) * t;
+
+		boolean isCapture = model.getPiece(er, ec) != null;
+		if (isCapture && !impactTriggered && t >= 1f) {
+			impactTriggered = true;
+			spawnImpactGhost(ex, ez, sx, sz, model.getPiece(er, ec));
+		}
+		if (!isCapture) {
+			impactTriggered = false;
+		}
 	  
 		// overlay state
 		gl.glPushAttrib(GL2.GL_ENABLE_BIT | GL2.GL_DEPTH_BUFFER_BIT | GL2.GL_COLOR_BUFFER_BIT);
@@ -876,7 +937,39 @@ public final class View
 		gl.glPopMatrix();
 		
 		gl.glPopAttrib();
-	}	  
+	}
+	private void spawnImpactGhost(
+			float ex, float ez,
+			float sx, float sz,
+			Model.Piece target
+	) {
+		// Compute reverse direction vector
+		float dx = sx - ex, dz = sz - ez;
+		float len = (float)Math.hypot(dx, dz);
+		if (len == 0f) { dx = 1; dz = 0; }
+		dx /= len; dz /= len;
+
+		ImpactGhost ig = new ImpactGhost();
+		ig.type      = target.type;
+		ig.isWhite   = target.isWhite();
+		ig.x = ex; ig.y = 0.1f; ig.z = ez;
+		ig.vx =  -dx * 5f; // horizontal speed away from hit
+		ig.vy = 5f;       // upward lift
+		ig.vz = -dz * 5f;
+		ig.yaw   = RANDOM.nextFloat() * 360f;
+		ig.pitch = 30f;
+		ig.angVel = RANDOM.nextFloat() * 90f - 45f;
+		ig.spawnTime = System.currentTimeMillis();
+		impactGhosts.add(ig);
+	}
+
+	// Temporary dummy pieces for outline rendering
+	private Model.Piece dummyPawn  (boolean w) { return model.new Pawn  (w); }
+	private Model.Piece dummyKnight(boolean w) { return model.new Knight(w); }
+	private Model.Piece dummyBishop(boolean w) { return model.new Bishop(w); }
+	private Model.Piece dummyRook  (boolean w) { return model.new Rook  (w); }
+	private Model.Piece dummyQueen (boolean w) { return model.new Queen (w); }
+	private Model.Piece dummyKing  (boolean w) { return model.new King  (w); }
 }
 
 //******************************************************************************
